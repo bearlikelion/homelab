@@ -1,0 +1,23 @@
+# OpenVPN Access Server. Official image, unlike the Pritunl community wrapper
+# whose last build was May 2024. Free tier allows 2 concurrent connections.
+services:
+  openvpn-as:
+    image: {{ openvpn_image }}
+    container_name: openvpn-as
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - MKNOD
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "{{ openvpn_web_port }}:943"
+      - "{{ openvpn_vpn_port }}:1194/udp"
+      - "{{ openvpn_tcp_port }}:443"
+    volumes:
+      - openvpn_data:/openvpn
+    environment:
+      - TZ={{ timezone }}
+
+volumes:
+  openvpn_data:

@@ -1,0 +1,68 @@
+---
+# OpenVPN Access Server. Profiles import into the same OpenVPN Connect client
+# used for work. Free tier: 2 concurrent connections.
+
+- name: Create stack directory
+  ansible.builtin.file:
+    path: "{{ vpn_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Enable IP forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Verify the TUN device was passed through
+  ansible.builtin.stat:
+    path: /dev/net/tun
+  register: tun_dev
+
+- name: Fail without TUN
+  ansible.builtin.fail:
+    msg: "/dev/net/tun missing; see device_passthrough on the vpn module."
+  when: not tun_dev.stat.exists
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ vpn_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: vpn_compose
+
+- name: Start OpenVPN AS
+  community.docker.docker_compose_v2:
+    project_src: "{{ vpn_dir }}"
+    state: present
+    pull: missing
+
+- name: Restart when the compose file changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ vpn_dir }}"
+    state: restarted
+  when: vpn_compose.changed
+
+- name: Wait for the admin interface
+  ansible.builtin.wait_for:
+    port: "{{ openvpn_web_port }}"
+    host: 127.0.0.1
+    timeout: 300
+
+# Generated on first start and only readable from inside the container.
+- name: Read the initial admin password
+  ansible.builtin.shell: >
+    docker logs openvpn-as 2>&1 | grep -iE "auto.generated pass|initial admin" | tail -1 || true
+  register: openvpn_pw
+  changed_when: false
+
+- name: First-run details
+  ansible.builtin.debug:
+    msg:
+      - "Admin UI:  https://{{ ansible_host }}:{{ openvpn_web_port }}/admin"
+      - "Client UI: https://{{ ansible_host }}:{{ openvpn_web_port }}/"
+      - "{{ openvpn_pw.stdout | default('(check: docker logs openvpn-as | grep -i pass)') }}"
+      - "Set the VPN client DNS to {{ edge_ip }} so .{{ internal_domain }} resolves."
+      - "Forward UDP {{ openvpn_vpn_port }} on the router for external access."

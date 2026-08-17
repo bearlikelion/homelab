@@ -1,0 +1,50 @@
+{
+	email {{ acme_email }}
+	# acme_dns, not tls{}: tls is site-level only.
+	acme_dns cloudflare {env.CF_API_TOKEN}
+}
+
+# Local CA: LE cannot issue for .home, and Authelia requires https.
+(internal_tls) {
+	tls internal
+}
+
+# --- Internal: *.{{ internal_domain }} ---------------------------------------
+
+# Plain HTTP: a device fetching the CA cannot yet trust it.
+http://ca.{{ internal_domain }} {
+	root * /ca
+	file_server browse
+}
+
+{% for svc in internal_services %}
+{{ internal_domain_scheme }}://{{ svc.name }}.{{ internal_domain }} {
+	import internal_tls
+{% if svc.upstream_tls | default(false) %}
+	reverse_proxy https://{{ svc.upstream }} {
+		transport http {
+			tls_insecure_skip_verify
+		}
+	}
+{% else %}
+	reverse_proxy {{ svc.upstream }}
+{% endif %}
+}
+
+{% endfor %}
+# One wildcard cert via DNS-01. Matches one label only, not the apex.
+*.{{ base_domain }} {
+{% for svc in public_services %}
+	@{{ svc.name }} host {{ svc.name }}.{{ base_domain }}
+{% endfor %}
+
+{% for svc in public_services %}
+	handle @{{ svc.name }} {
+		reverse_proxy {{ svc.upstream }}
+	}
+{% endfor %}
+
+	handle {
+		abort
+	}
+}

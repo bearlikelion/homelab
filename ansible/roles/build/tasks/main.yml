@@ -1,0 +1,93 @@
+---
+# C++ build box, with a toolchain good enough to compile Godot directly.
+#
+# Everything expensive lives under /build, a bind mount from the fast pool, so
+# the rootfs stays small and vzdump skips it.
+
+- name: Install the C++ toolchain
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - clang
+      - lld
+      - mold
+      - cmake
+      - ninja-build
+      - ccache
+      - scons
+      - pkg-config
+      - python3
+      - python3-venv
+      - python3-pip
+      - git
+      - git-lfs
+      - rsync
+      - unzip
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+# Godot links against these directly; without them the editor build fails late,
+# after a long compile, which is an expensive way to find out.
+- name: Install Godot build dependencies
+  ansible.builtin.apt:
+    name:
+      - libx11-dev
+      - libxcursor-dev
+      - libxinerama-dev
+      - libxi-dev
+      - libxrandr-dev
+      - libwayland-dev
+      - libxkbcommon-dev
+      - libgl1-mesa-dev
+      - libglu1-mesa-dev
+      - libasound2-dev
+      - libpulse-dev
+      - libudev-dev
+      - libdbus-1-dev
+    state: present
+
+- name: Create the build directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ build_root }}/src"
+    - "{{ build_root }}/data"
+    - "{{ build_root }}/artifacts"
+    - "{{ build_root }}/ccache"
+    - "{{ build_root }}/logs"
+
+# A cold Godot build is ~30 minutes; a warm one with a populated cache is a
+# fraction of that. The cache lives on the bind mount so it survives the
+# container being rebuilt from scratch.
+- name: Configure ccache
+  ansible.builtin.copy:
+    dest: /etc/profile.d/ccache.sh
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      export CCACHE_DIR={{ build_root }}/ccache
+      export CCACHE_MAXSIZE={{ ccache_max_size }}
+      export PATH=/usr/lib/ccache:$PATH
+
+- name: Set the ccache size limit
+  ansible.builtin.command:
+    cmd: ccache --max-size={{ ccache_max_size }}
+  environment:
+    CCACHE_DIR: "{{ build_root }}/ccache"
+  changed_when: false
+
+# scons reads this instead of needing the flags passed every time. Godot's own
+# SConstruct honours both, and the cache is separate from ccache's.
+- name: Write the Godot scons defaults
+  ansible.builtin.template:
+    src: godot-scons.conf.j2
+    dest: "{{ build_root }}/godot-scons.conf"
+    owner: root
+    group: root
+    mode: "0644"

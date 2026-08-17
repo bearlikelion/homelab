@@ -1,0 +1,35 @@
+---
+# Baseline every container shares: the media identity and basic tooling.
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - tzdata
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+# The media group and user must match the host's IDs exactly. The container's
+# lxc.idmap maps this one ID straight through, so files keep consistent
+# ownership across the host boundary.
+- name: Create media group
+  ansible.builtin.group:
+    name: media
+    gid: "{{ media_gid }}"
+    state: present
+
+- name: Create media user
+  ansible.builtin.user:
+    name: mediauser
+    uid: "{{ media_uid }}"
+    group: media
+    shell: /usr/sbin/nologin
+    create_home: false
+    state: present

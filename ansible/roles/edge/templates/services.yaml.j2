@@ -1,0 +1,65 @@
+- Media:
+    - Plex:
+        href: https://plex.{{ internal_domain }}
+        description: Watch movies and TV
+        icon: plex.png
+    - Movies:
+        href: https://movies.{{ internal_domain }}
+        description: Radarr, movie library
+        icon: radarr.png
+    - TV:
+        href: https://tv.{{ internal_domain }}
+        description: Sonarr, series library
+        icon: sonarr.png
+
+- Downloads:
+    - Downloads:
+        href: https://downloads.{{ internal_domain }}
+        description: qBittorrent
+        icon: qbittorrent.png
+    - Search:
+        href: https://search.{{ internal_domain }}
+        description: Prowlarr, indexers
+        icon: prowlarr.png
+    - Cleanup:
+        href: https://cleanup.{{ internal_domain }}
+        description: Maintainerr, library rules
+        icon: maintainerr.png
+
+- Infrastructure:
+    - Stats:
+        href: https://stats.{{ internal_domain }}
+        description: Tautulli, Plex analytics
+        icon: tautulli.png
+    - DNS:
+        href: https://dns.{{ internal_domain }}
+        description: AdGuard Home
+        icon: adguard-home.png
+    - Proxmox:
+        href: https://proxmox.{{ internal_domain }}
+        description: Hypervisor
+        icon: proxmox.png
+    - Backup:
+        href: https://backup.{{ internal_domain }}
+        description: Backrest, restic snapshots
+        icon: mdi-backup-restore
+
+- Access:
+    - VPN:
+        href: https://{{ vpn_ip }}:{{ openvpn_web_port }}/admin
+        description: OpenVPN Access Server
+        icon: openvpn.png
+    - CA Cert:
+        href: http://ca.{{ internal_domain }}/caddy-root-ca.crt
+        description: Install to trust .home names
+        icon: mdi-certificate
+
+- Tools:
+    - Social:
+        href: https://social.{{ internal_domain }}
+        description: Postiz, cross-posting
+        icon: mdi-share-variant
+    - Synology:
+        href: https://{{ nas_ip }}:5001
+        description: NAS
+        icon: synology.png

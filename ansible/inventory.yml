@@ -1,0 +1,40 @@
+---
+# Addresses match live/prod/node/main.tf.
+all:
+  vars:
+    ansible_user: root
+    ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+    ansible_ssh_common_args: -o StrictHostKeyChecking=accept-new
+  children:
+    media:
+      hosts:
+        media:
+          ansible_host: 192.168.1.110
+    plex:
+      hosts:
+        plex:
+          ansible_host: 192.168.1.120
+    edge:
+      hosts:
+        edge:
+          ansible_host: 192.168.1.130
+    vpn:
+      hosts:
+        vpn:
+          ansible_host: 192.168.1.140
+    build:
+      hosts:
+        build:
+          ansible_host: 192.168.1.150
+    social:
+      hosts:
+        social:
+          ansible_host: 192.168.1.160
+    backup:
+      hosts:
+        backup:
+          ansible_host: 192.168.1.170
+    files:
+      hosts:
+        files:
+          ansible_host: 192.168.1.190

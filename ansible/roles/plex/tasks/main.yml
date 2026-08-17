@@ -1,0 +1,55 @@
+---
+# Plex Media Server.
+#
+# The library is bind-mounted read-only from the host's ZFS pool, so Plex can
+# never modify media. Only /config is writable.
+
+- name: Create config directory
+  ansible.builtin.file:
+    path: "{{ plex_config_dir }}"
+    state: directory
+    owner: "{{ media_uid }}"
+    group: "{{ media_gid }}"
+    mode: "0775"
+
+- name: Create stack directory
+  ansible.builtin.file:
+    path: "{{ plex_stack_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ plex_stack_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: plex_compose
+
+# Confirms the idmap works: without it the library reads as nobody/nogroup.
+- name: Check the media mount is readable
+  ansible.builtin.command: ls /data
+  register: plex_media_check
+  changed_when: false
+  failed_when: plex_media_check.rc != 0
+
+- name: Start Plex
+  community.docker.docker_compose_v2:
+    project_src: "{{ plex_stack_dir }}"
+    state: present
+    pull: missing
+
+- name: Restart when the compose file changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ plex_stack_dir }}"
+    state: restarted
+  when: plex_compose.changed
+
+- name: Wait for the web interface
+  ansible.builtin.wait_for:
+    port: 32400
+    host: 127.0.0.1
+    timeout: 120
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg: "Plex is up at http://{{ ansible_host }}:32400/web"

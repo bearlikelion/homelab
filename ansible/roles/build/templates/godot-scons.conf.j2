@@ -1,0 +1,9 @@
+{{ ansible_managed | comment }}
+# Defaults for Godot builds. Use with:
+#   scons --config-file={{ build_root }}/godot-scons.conf
+#
+# scons_cache is separate from ccache and stores linked objects, so both help.
+
+num_jobs={{ godot_build_jobs }}
+scons_cache={{ build_root }}/ccache/scons
+use_mold={{ 'yes' if godot_use_mold else 'no' }}

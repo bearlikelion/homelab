@@ -1,0 +1,36 @@
+services:
+  plex:
+    image: {{ plex_image }}
+    container_name: plex
+    restart: unless-stopped
+
+    # Host networking: GDM local discovery uses UDP broadcast that does not
+    # cross a bridge, and on a bridge Plex sees the wrong subnet and treats LAN
+    # clients as remote, capping them at relay bandwidth.
+    network_mode: host
+
+    environment:
+      - PUID={{ media_uid }}
+      - PGID={{ media_gid }}
+      - TZ={{ timezone }}
+      # Let Docker handle updates; the image tag is pinned deliberately.
+      - VERSION=docker
+{% if plex_claim | default('') | length > 0 %}
+      # First run only: links this server to your account. Expires in 4 minutes.
+      - PLEX_CLAIM={{ plex_claim }}
+{% endif %}
+
+    volumes:
+      - {{ plex_config_dir }}:/config
+      - /data:/data:ro
+
+    # Transcode scratch in RAM rather than on disk.
+    tmpfs:
+      - /transcode
+{% if plex_gpu | default(false) %}
+
+    # Present only once a GPU is installed; no video engine on the onboard
+    # Matrox, so this stays off until then.
+    devices:
+      - /dev/dri:/dev/dri
+{% endif %}

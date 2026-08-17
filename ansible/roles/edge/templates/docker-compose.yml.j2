@@ -1,0 +1,57 @@
+services:
+  caddy:
+    build: .
+    image: caddy-cloudflare:{{ caddy_version }}
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      # HTTP/3
+      - "443:443/udp"
+    environment:
+      - CF_API_TOKEN=${CF_API_TOKEN}
+    volumes:
+      - {{ edge_dir }}/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Holds certificates and the ACME account key. Losing this means
+      # re-issuing everything and burning Let's Encrypt rate limits.
+      - {{ edge_dir }}/caddy-data:/data
+      - {{ edge_dir }}/ca:/ca:ro
+      - caddy_config:/config
+
+  adguard:
+    image: {{ adguard_image }}
+    container_name: adguard
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "{{ adguard_port }}:3000/tcp"
+    volumes:
+      - {{ edge_dir }}/adguard/work:/opt/adguardhome/work
+      - {{ edge_dir }}/adguard/conf:/opt/adguardhome/conf
+
+  homepage:
+    image: {{ homepage_image }}
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      - HOMEPAGE_ALLOWED_HOSTS=home.{{ internal_domain }},{{ edge_ip }}:{{ homepage_port }}
+    ports:
+      - "{{ homepage_port }}:3000"
+    volumes:
+      - {{ edge_dir }}/homepage:/app/config
+      - {{ edge_dir }}/homepage/images:/app/public/images:ro
+
+  cloudflare-ddns:
+    image: {{ ddns_image }}
+    container_name: cloudflare-ddns
+    restart: unless-stopped
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CF_API_TOKEN}
+      - DOMAINS={{ ddns_subdomain }}.{{ base_domain }}
+      - PROXIED=false
+      - IP6_PROVIDER=none
+
+volumes:
+  caddy_config:

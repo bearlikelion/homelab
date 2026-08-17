@@ -1,0 +1,125 @@
+# Postiz. 2.x requires Temporal for scheduling, which needs its own Postgres
+# and Elasticsearch.
+#
+# Platform reality:
+#   bluesky, mastodon  work immediately, no approval
+#   youtube            works, ~100 uploads/day quota
+#   instagram          needs Meta App Review (weeks)
+#   x                  needs a paid API tier
+#   tiktok             unaudited clients can only post PRIVATE videos
+services:
+  postiz:
+    image: {{ postiz_image }}
+    container_name: postiz
+    restart: unless-stopped
+    depends_on:
+      postiz-postgres:
+        condition: service_healthy
+      postiz-redis:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+    environment:
+      - MAIN_URL=https://social.{{ internal_domain }}
+      - FRONTEND_URL=https://social.{{ internal_domain }}
+      - NEXT_PUBLIC_BACKEND_URL=https://social.{{ internal_domain }}/api
+      - JWT_SECRET=${POSTIZ_JWT_SECRET}
+      - DATABASE_URL=postgresql://postiz:${POSTIZ_DB_PASSWORD}@postiz-postgres:5432/postiz
+      - REDIS_URL=redis://postiz-redis:6379
+      - BACKEND_INTERNAL_URL=http://localhost:3000
+      - TEMPORAL_ADDRESS=temporal:7233
+      - IS_GENERAL=true
+      - DISABLE_REGISTRATION={{ postiz_disable_registration | lower }}
+      - STORAGE_PROVIDER=local
+      - UPLOAD_DIRECTORY=/uploads
+      - NEXT_PUBLIC_UPLOAD_DIRECTORY=/uploads
+    volumes:
+      - postiz_config:/config
+      - postiz_uploads:/uploads
+    ports:
+      - "{{ postiz_port }}:5000"
+
+  postiz-postgres:
+    image: {{ postiz_postgres_image }}
+    container_name: postiz-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postiz
+      - POSTGRES_PASSWORD=${POSTIZ_DB_PASSWORD}
+      - POSTGRES_DB=postiz
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postiz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  postiz-redis:
+    image: {{ postiz_redis_image }}
+    container_name: postiz-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  temporal-postgresql:
+    image: {{ temporal_postgres_image }}
+    container_name: temporal-postgresql
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=temporal
+      - POSTGRES_PASSWORD=${POSTIZ_DB_PASSWORD}
+    volumes:
+      - temporal_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  temporal-elasticsearch:
+    image: {{ temporal_elasticsearch_image }}
+    container_name: temporal-elasticsearch
+    restart: unless-stopped
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+    volumes:
+      - temporal_elasticsearch:/var/lib/elasticsearch/data
+
+  temporal:
+    image: {{ temporal_image }}
+    container_name: temporal
+    restart: unless-stopped
+    depends_on:
+      temporal-postgresql:
+        condition: service_healthy
+      temporal-elasticsearch:
+        condition: service_started
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=${POSTIZ_DB_PASSWORD}
+      - POSTGRES_SEEDS=temporal-postgresql
+      - ENABLE_ES=true
+      - ES_SEEDS=temporal-elasticsearch
+      - ES_VERSION=v7
+
+volumes:
+  postgres_data:
+  redis_data:
+  postiz_config:
+  postiz_uploads:
+  temporal_postgres:
+  temporal_elasticsearch:

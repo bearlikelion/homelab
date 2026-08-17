@@ -1,0 +1,42 @@
+---
+# Overridable in group_vars. Kept here so the role stands on its own.
+
+samba_workgroup: WORKGROUP
+samba_server_string: tank
+samba_root: /srv/samba
+samba_share_root: /srv/samba/tank
+
+# The LAN only. Samba is unauthenticated at the network layer until a client
+# logs in, so it has no business answering anything routed.
+samba_allow_hosts: 192.168.1.0/24 127.0.0.0/8
+
+# Windows Explorer stopped browsing SMB1 networks, so discovery needs
+# WS-Discovery. Debian's package is wsdd2.
+samba_wsdd_enabled: true
+
+# Reads snapshots the host takes; see scripts/pve-snapshots-install.sh. Off until
+# verified, because an unprivileged container cannot always traverse .zfs.
+samba_shadow_copy: false
+samba_snapshot_prefix: autosnap
+
+# One share over the whole pool, so a desktop gets a single /mnt/tank. The four
+# datasets under it are individual bind mounts from the files module in
+# live/prod/node/main.tf.
+samba_shares:
+  - name: tank
+    path: "{{ samba_share_root }}"
+    comment: The tank pool
+    read_only: false
+
+# The datasets expected under samba_share_root. Checked before smbd starts, so a
+# missing bind mount fails the deploy rather than serving an empty directory
+# that looks exactly like a working share.
+samba_expected_datasets:
+  - media
+  - documents
+  - bulk
+  - backup
+
+# Names only. Each needs a samba_<name>_password in the sops secrets file; the
+# _password suffix is what .sops.yaml keys its encryption off.
+samba_users: []

@@ -1,0 +1,91 @@
+---
+# The *arr stack: indexers, download client, and library management.
+
+- name: Create stack directory
+  ansible.builtin.file:
+    path: "{{ stack_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Create per-service config directories
+  ansible.builtin.file:
+    path: "{{ stack_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ media_uid }}"
+    group: "{{ media_gid }}"
+    mode: "0775"
+  loop:
+    - qbittorrent
+    - prowlarr
+    - radarr
+    - sonarr
+    - tautulli
+    - maintainerr
+
+# Downloads land here; the *arr apps hardlink from here into the library.
+- name: Create download directories
+  ansible.builtin.file:
+    path: "/data/torrents/{{ item }}"
+    state: directory
+    owner: "{{ media_uid }}"
+    group: "{{ media_gid }}"
+    mode: "0775"
+  loop:
+    - movies
+    - tv
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ stack_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: media_compose
+
+# Proves the whole storage design: if this returns 1 the library and downloads
+# are on different filesystems and every import will be a slow full copy.
+- name: Verify hardlinks work between downloads and library
+  ansible.builtin.shell: |
+    set -e
+    rm -f /data/torrents/.hltest /data/movies/.hltest
+    touch /data/torrents/.hltest
+    ln /data/torrents/.hltest /data/movies/.hltest
+    links=$(stat -c %h /data/torrents/.hltest)
+    rm -f /data/torrents/.hltest /data/movies/.hltest
+    test "$links" -eq 2
+  changed_when: false
+
+- name: Start the stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ stack_dir }}"
+    state: present
+    pull: missing
+
+- name: Restart when the compose file changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ stack_dir }}"
+    state: restarted
+  when: media_compose.changed
+
+- name: Wait for each web interface
+  ansible.builtin.wait_for:
+    port: "{{ item }}"
+    host: 127.0.0.1
+    timeout: 180
+  loop:
+    - "{{ qbittorrent_port }}"
+    - "{{ prowlarr_port }}"
+    - "{{ radarr_port }}"
+    - "{{ sonarr_port }}"
+    - "{{ tautulli_port }}"
+
+# qBittorrent generates a temporary password on first start; it is only in the
+# logs, so surface it rather than making the user go hunting.
+- name: Find the qBittorrent temporary password
+  ansible.builtin.shell: >
+    docker logs qbittorrent 2>&1 | grep -i "temporary password" | tail -1 || true
+  register: qbt_pass
+  changed_when: false
+
+- name: Show it
+  ansible.builtin.debug:
+    msg: "{{ qbt_pass.stdout | default('already configured; no temporary password in logs') }}"

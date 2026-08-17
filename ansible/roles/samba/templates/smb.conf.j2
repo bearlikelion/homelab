@@ -1,0 +1,59 @@
+{{ ansible_managed | comment }}
+# One share over the whole tank pool. Each dataset under it is a separate bind
+# mount, because PVE binds rather than rbinds and a single /tank mount would
+# expose empty directories.
+
+[global]
+	workgroup = {{ samba_workgroup }}
+	server string = {{ samba_server_string }}
+	security = user
+
+	# No guest fallback: a failed login must fail, not silently downgrade to
+	# anonymous access on 414G of documents.
+	map to guest = never
+	restrict anonymous = 2
+
+	# SMB1 is off by default in modern Samba; this keeps it that way and forces
+	# signing so a client cannot be downgraded on the LAN.
+	server min protocol = SMB3
+	client min protocol = SMB2
+	server signing = mandatory
+
+	hosts allow = {{ samba_allow_hosts }}
+	hosts deny = 0.0.0.0/0
+
+	# Files land on tank owned by the media identity, which the container's
+	# lxc.idmap maps 1:1 to the host. Anything else arrives as 100000+.
+	force user = mediauser
+	force group = media
+	create mask = 0664
+	directory mask = 0775
+
+	log file = /var/log/samba/log.%m
+	max log size = 1000
+	logging = file
+
+	# Deliberately not a domain member, WINS server or print server.
+	load printers = no
+	printing = bsd
+	printcap name = /dev/null
+	disable spoolss = yes
+
+{% for share in samba_shares %}
+[{{ share.name }}]
+	comment = {{ share.comment }}
+	path = {{ share.path }}
+	browseable = yes
+	read only = {{ 'yes' if share.read_only else 'no' }}
+	valid users = {{ samba_users | join(' ') }}
+{% if samba_shadow_copy %}
+	vfs objects = shadow_copy2
+	shadow:snapdir = .zfs/snapshot
+	shadow:sort = desc
+	shadow:localtime = yes
+	shadow:snapprefix = ^{{ samba_snapshot_prefix }}
+	shadow:delimiter = _
+	shadow:format = _%Y-%m-%d_%H:%M:%S
+{% endif %}
+
+{% endfor %}

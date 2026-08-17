@@ -1,0 +1,54 @@
+---
+# Postiz: social scheduling and cross-posting.
+
+- name: Create stack directory
+  ansible.builtin.file:
+    path: "{{ social_dir }}"
+    state: directory
+    mode: "0755"
+
+# Generated on the host so nothing lands in the repo. Guarded, because
+# regenerating the JWT secret would log everyone out and rotating the database
+# password would break the running Postgres volume.
+- name: Generate secrets
+  ansible.builtin.shell: |
+    umask 077
+    [ -s {{ social_dir }}/.env ] || cat > {{ social_dir }}/.env <<EOF
+    POSTIZ_JWT_SECRET=$(openssl rand -hex 32)
+    POSTIZ_DB_PASSWORD=$(openssl rand -hex 24)
+    EOF
+  args:
+    creates: "{{ social_dir }}/.env"
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ social_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: social_compose
+
+- name: Start Postiz
+  community.docker.docker_compose_v2:
+    project_src: "{{ social_dir }}"
+    state: present
+    pull: missing
+
+- name: Restart when the compose file changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ social_dir }}"
+    state: restarted
+  when: social_compose.changed
+
+# First boot runs database migrations, so allow plenty of time.
+- name: Wait for the web interface
+  ansible.builtin.wait_for:
+    port: "{{ postiz_port }}"
+    host: 127.0.0.1
+    timeout: 600
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Postiz at http://social.{{ internal_domain }}"
+      - "Register the first account now, then set postiz_disable_registration: true and re-run."
+      - "Connect Bluesky and Mastodon first: neither needs approval."

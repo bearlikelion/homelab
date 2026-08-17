@@ -1,0 +1,129 @@
+---
+# Samba over the tank bind mounts, native rather than in Docker: this is a file
+# server, and a container layer between smbd and the mount buys nothing.
+
+- name: Fail early without any Samba users
+  ansible.builtin.assert:
+    that:
+      - samba_users | length > 0
+    fail_msg: >-
+      samba_users is empty, so every share would list no valid users and reject
+      all logins. Set it in group_vars and put the matching passwords in
+      samba_passwords in the sops secrets file.
+
+# One variable per user rather than a dict: .sops.yaml only encrypts keys ending
+# in _password, so a samba_passwords map would be committed in plaintext.
+- name: Fail early on a user with no password
+  ansible.builtin.assert:
+    that:
+      - lookup('vars', 'samba_' ~ item ~ '_password', default='') | length > 0
+    fail_msg: >-
+      samba_{{ item }}_password is not set. Add it to
+      ansible/group_vars/all/secrets.sops.yml; the name has to end in _password
+      or .sops.yaml will not encrypt it.
+  loop: "{{ samba_users }}"
+
+# The bind mounts are ForceNew on the container, so a missing one is a tofu
+# problem, not something this role should paper over by creating a local dir.
+- name: Check the tank bind mounts
+  ansible.builtin.command: mountpoint -q {{ samba_share_root }}/{{ item }}
+  register: share_mounts
+  changed_when: false
+  failed_when: false
+  loop: "{{ samba_expected_datasets }}"
+
+# mountpoint rather than stat, deliberately. A dataset that failed to bind still
+# leaves an empty directory behind, which stat happily reports as present and
+# smbd happily serves as an empty share.
+- name: Fail on a dataset that is not actually mounted
+  ansible.builtin.fail:
+    msg: >-
+      {{ samba_share_root }}/{{ item.item }} is not a mount point, so it would be
+      served empty. Every dataset in samba_expected_datasets needs a matching
+      entry in mount_points on the files module in live/prod/node/main.tf, and
+      that change is ForceNew: apply it before deploying, or the container is
+      still on the previous mount layout.
+  when: item.rc != 0
+  loop: "{{ share_mounts.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Install Samba
+  ansible.builtin.apt:
+    name:
+      - samba
+      - samba-common-bin
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+# wsdd2, not wsdd: Debian ships the C implementation under that name and has no
+# package called wsdd.
+- name: Install wsdd2 for Windows network discovery
+  ansible.builtin.apt:
+    name: wsdd2
+    state: present
+  when: samba_wsdd_enabled
+
+# Unix accounts back the Samba accounts; nologin because none of them ever needs
+# a shell on this box.
+- name: Create the Unix accounts behind the Samba users
+  ansible.builtin.user:
+    name: "{{ item }}"
+    shell: /usr/sbin/nologin
+    create_home: false
+    groups: media
+    append: true
+    state: present
+  loop: "{{ samba_users }}"
+
+- name: List existing Samba accounts
+  ansible.builtin.command: pdbedit -L
+  register: samba_existing
+  changed_when: false
+
+# Only sets a password when the account is new. Rotating one is a deliberate
+# `smbpasswd <user>` on the box, not a side effect of a deploy.
+- name: Create Samba accounts
+  ansible.builtin.shell:
+    cmd: >-
+      printf '%s\n%s\n'
+      "{{ lookup('vars', 'samba_' ~ item ~ '_password') }}"
+      "{{ lookup('vars', 'samba_' ~ item ~ '_password') }}"
+      | smbpasswd -s -a {{ item }}
+  loop: "{{ samba_users }}"
+  when: item not in samba_existing.stdout
+  no_log: true
+
+- name: Write smb.conf
+  ansible.builtin.template:
+    src: smb.conf.j2
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: testparm -s %s
+  notify: Restart Samba
+
+- name: Enable Samba
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - smbd
+    - nmbd
+
+- name: Enable wsdd2
+  ansible.builtin.systemd_service:
+    name: wsdd2
+    enabled: true
+    state: started
+  when: samba_wsdd_enabled
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Windows:  \\\\{{ ansible_host }}\\tank   (or \\\\files\\tank once wsdd is seen)"
+      - "Linux:    //{{ ansible_host }}/tank /mnt/tank cifs credentials=...,uid=$(id -u),gid=$(id -g)"
+      - "Datasets: {{ samba_expected_datasets | join(', ') }}"

@@ -1,0 +1,9 @@
+# The official Caddy image has no DNS provider modules, and wildcard certs need
+# the DNS-01 challenge, so build one with the Cloudflare provider compiled in.
+FROM caddy:{{ caddy_version }}-builder-alpine AS builder
+
+RUN xcaddy build --with github.com/caddy-dns/cloudflare
+
+FROM caddy:{{ caddy_version }}-alpine
+
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy

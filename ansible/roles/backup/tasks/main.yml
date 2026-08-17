@@ -1,0 +1,76 @@
+---
+# Backrest: a web UI over the restic repositories on /tank.
+#
+# The scheduled backup jobs run on the PVE host, not here. This container cannot
+# see the other containers' disks (LVM-thin volumes owned by the host), so it
+# only browses and restores what the host already wrote.
+
+- name: Fail early without a restic password
+  ansible.builtin.assert:
+    that:
+      - restic_password | default('') | length > 0
+    fail_msg: >-
+      restic_password is not set. It lives in the sops secrets file so that it
+      survives the host being reinstalled; without it the repositories cannot
+      be decrypted.
+
+- name: Verify the tank mount is present
+  ansible.builtin.stat:
+    path: /tank/backup
+  register: tank_mount
+
+- name: Fail without tank
+  ansible.builtin.fail:
+    msg: "/tank/backup missing; see mount_points on the backup module."
+  when: not tank_mount.stat.exists
+
+- name: Create stack directory
+  ansible.builtin.file:
+    path: "{{ backup_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ backup_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: backup_compose
+
+# The credentials reach the container through this file, never the compose file.
+- name: Write the environment file
+  ansible.builtin.copy:
+    content: |
+      RESTIC_PASSWORD={{ restic_password }}
+      B2_ACCOUNT_ID={{ b2_account_id }}
+      B2_ACCOUNT_KEY={{ b2_account_key }}
+    dest: "{{ backup_dir }}/.env"
+    mode: "0600"
+  no_log: true
+  register: backup_env
+
+- name: Start Backrest
+  community.docker.docker_compose_v2:
+    project_src: "{{ backup_dir }}"
+    state: present
+    pull: missing
+
+- name: Restart when config changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ backup_dir }}"
+    state: restarted
+  when: backup_compose.changed or backup_env.changed
+
+- name: Wait for the web interface
+  ansible.builtin.wait_for:
+    port: "{{ backrest_port }}"
+    host: 127.0.0.1
+    timeout: 120
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Backrest at https://backup.{{ internal_domain }}"
+      - "Set the admin password on first login."
+      - "Repos are at /tank/backup/restic (local) and the B2 bucket (offsite)."
+      - "Scheduled jobs run on the PVE host, not in this container."

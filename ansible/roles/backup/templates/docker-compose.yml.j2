@@ -1,0 +1,32 @@
+# Backrest, a web UI and scheduler for restic.
+#
+# /tank is bind-mounted read-only from the host, so a misclick in the UI cannot
+# delete a repository. Restores therefore write to /restores, not back over the
+# source. The B2 credentials are here so the offsite repo can be browsed too.
+services:
+  backrest:
+    image: {{ backrest_image }}
+    container_name: backrest
+    restart: unless-stopped
+    environment:
+      - TZ={{ timezone }}
+      - BACKREST_DATA=/data
+      - BACKREST_CONFIG=/config/config.json
+      - RESTIC_PASSWORD=${RESTIC_PASSWORD}
+      - B2_ACCOUNT_ID=${B2_ACCOUNT_ID}
+      - B2_ACCOUNT_KEY=${B2_ACCOUNT_KEY}
+      - XDG_CACHE_HOME=/cache
+    volumes:
+      - backrest_data:/data
+      - backrest_config:/config
+      - backrest_cache:/cache
+      - /tank:/tank:ro
+      - restores:/restores
+    ports:
+      - "{{ backrest_port }}:9898"
+
+volumes:
+  backrest_data:
+  backrest_config:
+  backrest_cache:
+  restores:

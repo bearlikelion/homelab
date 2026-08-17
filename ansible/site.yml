@@ -1,0 +1,64 @@
+---
+- name: Base configuration for every container
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Ensure keyrings directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+  roles:
+    - common
+    - docker
+
+- name: Deploy the media stack
+  hosts: media
+  become: true
+  roles:
+    - media_stack
+
+- name: Deploy Plex
+  hosts: plex
+  become: true
+  roles:
+    - plex
+
+- name: Deploy the edge proxy
+  hosts: edge
+  become: true
+  roles:
+    - edge
+
+- name: Deploy the VPN
+  hosts: vpn
+  become: true
+  roles:
+    - vpn
+
+- name: Deploy Postiz
+  hosts: social
+  become: true
+  roles:
+    - social
+
+- name: Deploy the backup UI
+  hosts: backup
+  become: true
+  roles:
+    - backup
+
+- name: Deploy the build box
+  hosts: build
+  become: true
+  roles:
+    - build
+
+- name: Deploy the file shares
+  hosts: files
+  become: true
+  roles:
+    - samba

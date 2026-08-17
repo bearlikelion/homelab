@@ -1,0 +1,223 @@
+---
+# Shared settings. Secrets belong in secrets.sops.yml, never here.
+
+timezone: America/New_York
+
+# Must match the host's media user, and the idmap in live/prod/node/main.tf.
+media_uid: 13000
+media_gid: 13000
+
+base_domain: arneman.me
+acme_email: mark@arneman.me
+
+# --- Images -----------------------------------------------------------------
+# Pinned deliberately: the previous setup drifted because everything tracked
+# :latest (and radarr:nightly). Upgrades should be a reviewable one-line diff.
+
+plex_image: lscr.io/linuxserver/plex:1.43.3
+qbittorrent_image: lscr.io/linuxserver/qbittorrent:5.2.3
+prowlarr_image: lscr.io/linuxserver/prowlarr:2.5.2
+radarr_image: lscr.io/linuxserver/radarr:6.3.0
+sonarr_image: lscr.io/linuxserver/sonarr:4.0.19
+tautulli_image: lscr.io/linuxserver/tautulli:2.17.2
+maintainerr_image: ghcr.io/maintainerr/maintainerr:3.9.0
+ddns_image: favonia/cloudflare-ddns:1.15.1
+adguard_image: adguard/adguardhome:v0.107.68
+homepage_image: ghcr.io/gethomepage/homepage:v1.13.2
+backrest_image: garethgeorge/backrest:v1.14.1
+caddy_version: "2.11.4"
+
+# --- Paths ------------------------------------------------------------------
+
+stack_dir: /opt/media
+edge_dir: /opt/edge
+vpn_dir: /opt/vpn
+backup_dir: /opt/backup
+plex_stack_dir: /opt/plex
+plex_config_dir: /opt/plex/config
+
+# --- Ports ------------------------------------------------------------------
+
+qbittorrent_port: 8080
+qbittorrent_torrent_port: 6881
+prowlarr_port: 9696
+radarr_port: 7878
+sonarr_port: 8989
+tautulli_port: 8181
+maintainerr_port: 6246
+
+# --- Reverse proxy ----------------------------------------------------------
+
+media_ip: 192.168.1.110
+plex_ip: 192.168.1.120
+edge_ip: 192.168.1.130
+vpn_ip: 192.168.1.140
+build_ip: 192.168.1.150
+social_ip: 192.168.1.160
+backup_ip: 192.168.1.170
+
+# Internal names, resolved by AdGuard and reachable only on the LAN or over the
+# VPN. Purpose-based rather than app-based: what it does, not what runs it.
+internal_domain: arneman.home
+# Internal names are served over HTTPS with Caddy's local CA, because Authelia
+# will not set session cookies over plain HTTP.
+internal_domain_scheme: https
+
+internal_services:
+  - name: movies
+    upstream: "{{ media_ip }}:{{ radarr_port }}"
+  - name: tv
+    upstream: "{{ media_ip }}:{{ sonarr_port }}"
+  - name: downloads
+    upstream: "{{ media_ip }}:{{ qbittorrent_port }}"
+  - name: search
+    upstream: "{{ media_ip }}:{{ prowlarr_port }}"
+  - name: stats
+    upstream: "{{ media_ip }}:{{ tautulli_port }}"
+  - name: cleanup
+    upstream: "{{ media_ip }}:{{ maintainerr_port }}"
+  - name: plex
+    upstream: "{{ plex_ip }}:32400"
+  - name: home
+    upstream: "{{ edge_ip }}:{{ homepage_port }}"
+  - name: dns
+    upstream: "{{ edge_ip }}:{{ adguard_port }}"
+  # OpenVPN AS serves the admin UI over https only, so dialing it as plain
+  # http returns 502.
+  - name: vpn
+    upstream: "{{ vpn_ip }}:{{ openvpn_web_port }}"
+    upstream_tls: true
+  - name: social
+    upstream: "{{ social_ip }}:{{ postiz_port }}"
+  - name: backup
+    upstream: "{{ backup_ip }}:{{ backrest_port }}"
+  # Proxmox serves https with its own self-signed cert, so Caddy has to dial
+  # https and skip verification. pve is an alias for the same host.
+  - name: proxmox
+    upstream: "{{ pve_ip }}:8006"
+    upstream_tls: true
+  - name: pve
+    upstream: "{{ pve_ip }}:8006"
+    upstream_tls: true
+  # Cockpit serves its own https and rejects a proxied websocket unless its
+  # Origins list names this host; pve-cockpit-install.sh writes that.
+  - name: cockpit
+    upstream: "{{ pve_ip }}:9090"
+    upstream_tls: true
+
+# Public names with real certificates. Deliberately minimal: only Plex is
+# exposed. Admin interfaces stay internal, reachable over the VPN instead.
+public_services:
+  - name: plex
+    upstream: "{{ plex_ip }}:32400"
+
+ddns_subdomain: home
+
+adguard_port: 3000
+homepage_port: 3001
+backrest_port: 9898
+
+dashboard_title: Arneman Home
+pve_ip: 192.168.1.99
+nas_ip: 192.168.1.11
+
+# Fetched once at deploy time and served locally; an external URL adds ~1s to
+# every page load.
+homepage_background_source: https://picsum.photos/1920/1080?blur=2
+homepage_background: /images/background.jpg
+homepage_background_blur: sm
+homepage_background_opacity: 25
+
+quotes:
+  - text: "Programs must be written for people to read, and only incidentally for machines to execute."
+    author: Harold Abelson
+  - text: "Simplicity is prerequisite for reliability."
+    author: Edsger W. Dijkstra
+  - text: "Premature optimization is the root of all evil."
+    author: Donald Knuth
+  - text: "Make it work, make it right, make it fast."
+    author: Kent Beck
+  - text: "The best code is no code at all."
+    author: Jeff Atwood
+  - text: "Weeks of coding can save you hours of planning."
+    author: Unknown
+  - text: "Everything should be made as simple as possible, but not simpler."
+    author: Albert Einstein
+  - text: "Talk is cheap. Show me the code."
+    author: Linus Torvalds
+  - text: "A game is a series of interesting choices."
+    author: Sid Meier
+  - text: "Perfection is achieved when there is nothing left to take away."
+    author: Antoine de Saint-Exupery
+  - text: "First, solve the problem. Then, write the code."
+    author: John Johnson
+  - text: "Deleted code is debugged code."
+    author: Jeff Sickel
+
+# Open-Meteo: no API key, no account, no credit card. OpenWeatherMap's One Call
+# tier now requires a card on file even for the free bucket.
+weather_label: Home
+weather_latitude: 40.0583
+weather_longitude: -74.4057
+weather_units: imperial
+
+# Login is admin / changeme. Change it in the web UI after first login, or
+# replace this hash:
+#   docker run --rm httpd:alpine htpasswd -B -n -b admin <password>
+adguard_password_hash: "$2b$10$/nJn6Whuyu6QwO6VxbmZy.PeWTmf68FMFKkAWrvMDAaxFsVYbzXYa"
+
+# --- Plex -------------------------------------------------------------------
+
+# Set true once a GPU with a video engine is installed.
+plex_gpu: false
+
+# Generate at https://plex.tv/claim right before deploying; valid 4 minutes.
+#   ansible-playbook site.yml -e plex_claim=claim-xxxx
+plex_claim: ""
+
+# --- Secrets ----------------------------------------------------------------
+# Scoped Cloudflare token: Zone:DNS:Edit + Zone:Zone:Read on this zone only.
+# Pass with -e cloudflare_api_token=... or via the sops secrets file.
+cloudflare_api_token: ""
+
+# --- VPN --------------------------------------------------------------------
+
+openvpn_image: openvpn/openvpn-as:3.2.2-413ca39f-Ubuntu24
+openvpn_web_port: 943
+openvpn_vpn_port: 1194
+openvpn_tcp_port: 8443
+
+# --- Build ------------------------------------------------------------------
+# Bind mount from the fast pool. Source, artifacts and the ccache all live here
+# so the container rootfs stays small and vzdump skips them.
+build_root: /build
+
+# 24 cores allocated, 22 used, leaving the box responsive during a build.
+godot_build_jobs: 22
+ccache_max_size: 50G
+
+# --- Files (Samba) ----------------------------------------------------------
+# tank/backup is not shared. A desktop that can write to the restic repositories
+# is the ransomware path backups exist to survive.
+
+files_ip: 192.168.1.190
+
+samba_users:
+  - mark
+
+# Set true only after verifying the container can traverse .zfs/snapshot; an
+# unprivileged LXC often cannot, and smbd then serves an empty version list.
+samba_shadow_copy: false
+
+# --- Social (Postiz) --------------------------------------------------------
+
+postiz_image: ghcr.io/gitroomhq/postiz-app:v2.22.1
+postiz_postgres_image: postgres:17-alpine
+postiz_redis_image: redis:7-alpine
+temporal_image: temporalio/auto-setup:1.28.1
+temporal_postgres_image: postgres:16
+temporal_elasticsearch_image: elasticsearch:7.17.27
+postiz_port: 5000
+social_dir: /opt/social
+# Leave false for the first deploy so you can create an account, then flip it.
+postiz_disable_registration: false

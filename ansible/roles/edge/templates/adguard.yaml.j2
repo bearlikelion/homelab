@@ -1,0 +1,51 @@
+# AdGuard Home: local DNS for *.{{ internal_domain }} plus network-wide ad
+# blocking. Only the initial config is written here; changes made in the web UI
+# persist in the container's volume and are not overwritten.
+http:
+  address: 0.0.0.0:3000
+
+users:
+  - name: admin
+    password: {{ adguard_password_hash }}
+
+dns:
+  bind_hosts:
+    - 0.0.0.0
+  port: 53
+
+  # Anything not answered locally goes upstream over DNS-over-HTTPS.
+  upstream_dns:
+    - https://1.1.1.1/dns-query
+    - https://1.0.0.1/dns-query
+  bootstrap_dns:
+    - 1.1.1.1
+    - 1.0.0.1
+
+  # Clients on the LAN and on the VPN are both allowed to query.
+  allowed_clients: []
+  trusted_proxies:
+    - 127.0.0.0/8
+
+  # Internal names resolve to Caddy, which proxies to the right container.
+  rewrites:
+{% for svc in internal_services %}
+    - domain: {{ svc.name }}.{{ internal_domain }}
+      answer: {{ edge_ip }}
+{% endfor %}
+    # Bare domain and any future name.
+    - domain: {{ internal_domain }}
+      answer: {{ edge_ip }}
+    - domain: "*.{{ internal_domain }}"
+      answer: {{ edge_ip }}
+
+filters:
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
+    name: AdGuard DNS filter
+    id: 1
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt
+    name: AdAway Default Blocklist
+    id: 2
+
+schema_version: 29

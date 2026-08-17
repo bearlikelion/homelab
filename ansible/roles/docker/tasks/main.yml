@@ -1,0 +1,43 @@
+---
+# Docker engine + compose plugin from Docker's own repository.
+#
+# This only works because the container has features nesting=1 and keyctl=1.
+# Without them the daemon fails to start. See modules/lxc/main.tf.
+
+- name: Add Docker apt key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable
+    filename: docker
+    state: present
+
+- name: Install Docker engine and compose plugin
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: Enable and start Docker
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+
+# If this fails with a permission error on ip_unprivileged_port_start, the host
+# needs lxc-pve >= 6.0.5-2 (the CVE-2025-52881 fix).
+- name: Verify the daemon actually runs
+  ansible.builtin.command: docker info
+  register: docker_info
+  changed_when: false

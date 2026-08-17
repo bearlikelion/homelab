@@ -1,0 +1,31 @@
+# OpenTofu / Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Local-only secret var files (commit prod.tfvars, not these)
+*.auto.tfvars
+secrets.tfvars
+
+# Decrypted secrets: only the .sops.yml form is committed
+ansible/group_vars/all/secrets.yml
+*.decrypted.*
+.env
+
+# Ansible
+ansible/inventory.generated.yml
+*.retry
+
+# Editor / OS
+.DS_Store
+*.swp
+.venv/

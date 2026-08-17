@@ -1,0 +1,98 @@
+/* gruvbox, matching markmakes.games */
+
+:root {
+  --bg0h: #1d2021; --bg0: #282828; --bg1: #3c3836; --bg2: #504945; --bg3: #665c54;
+  --fg: #ebdbb2; --fg2: #d5c4a1; --gray: #928374;
+  --red: #fb4934; --green: #b8bb26; --yellow: #fabd2f; --blue: #83a598;
+  --purple: #d3869b; --aqua: #8ec07c; --orange: #fe8019;
+}
+
+/* html carries the base colour so there is no flash before this loads. */
+html { background-color: var(--bg0h) !important; }
+
+/* Background is fixed so it does not scroll away past the content. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--bg0h);
+  z-index: -2;
+}
+
+body, #page_container {
+  background-color: transparent !important;
+  color: var(--fg) !important;
+  font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+}
+
+.services-group, .bookmark-group, .information-widget-openmeteo,
+.information-widget-resources, .information-widget-search {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+h2, .services-group h2, .bookmark-group h2 {
+  color: var(--yellow) !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em;
+  text-transform: lowercase;
+}
+
+h2::before { content: "// "; color: var(--gray); }
+
+.service-card, .bookmark-card {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  transition: color .15s ease, transform .15s ease;
+}
+
+.service-card:hover, .bookmark-card:hover {
+  transform: translateY(-2px);
+}
+.service-card:hover .service-title, .bookmark-card:hover .bookmark-text {
+  color: var(--aqua) !important;
+}
+
+.service-title, .bookmark-text { color: var(--fg) !important; font-weight: 600 !important; }
+.service-description, .bookmark-description { color: var(--gray) !important; }
+
+a { color: var(--blue) !important; }
+a:hover { color: var(--aqua) !important; }
+
+.service-status-online, .status-online { background-color: var(--green) !important; }
+.service-status-offline, .status-offline { background-color: var(--red) !important; }
+
+input, .search-bar, input[type="text"] {
+  background-color: transparent !important;
+  border: 1px solid var(--bg2) !important;
+  color: var(--fg) !important;
+  border-radius: 0 !important;
+}
+input:focus { border-color: var(--yellow) !important; outline: none !important; }
+
+.information-widget-openmeteo, .information-widget-resources { color: var(--fg2) !important; }
+.information-widget-resources .resource-value { color: var(--aqua) !important; }
+
+#footer, .footer { color: var(--gray) !important; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--bg0h); }
+::-webkit-scrollbar-thumb { background: var(--bg2); }
+::-webkit-scrollbar-thumb:hover { background: var(--bg3); }
+
+/* Quote of the day. Rendered in CSS because this Homepage build never loads
+   custom.js, only custom.css. Ansible picks the quote at deploy time. */
+#page_container::after {
+  content: "{{ quote_of_the_day.text }}  \2014 {{ quote_of_the_day.author }}";
+  display: block;
+  margin: 2.5rem auto 1.5rem;
+  max-width: 60rem;
+  padding: .9rem 1.2rem;
+  border-left: 3px solid var(--orange);
+  font-style: italic;
+  color: var(--fg2);
+  font-size: .95rem;
+}
+

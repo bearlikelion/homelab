@@ -1,0 +1,9 @@
+---
+# Overridable in group_vars. Kept here so the role stands on its own.
+
+# 24 cores are allocated, so leave a little room rather than saturating every
+# one: a build should not make the box unresponsive to ssh.
+godot_build_jobs: 22
+godot_use_mold: true
+
+ccache_max_size: 50G

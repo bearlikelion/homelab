@@ -1,0 +1,8 @@
+# Which key encrypts which files.
+#
+# No encrypted_regex on purpose: every value is encrypted, so a new secret is
+# protected whatever it is named. The private key lives at
+# ~/.config/sops/age/keys.txt and is never committed.
+creation_rules:
+  - path_regex: ansible/group_vars/.*/secrets\.sops\.ya?ml$
+    age: age1nzfym3k4ptyua53p8v5e0m8qvfyjkytcms8nkrdcm3fd44a0m92s38lssv
