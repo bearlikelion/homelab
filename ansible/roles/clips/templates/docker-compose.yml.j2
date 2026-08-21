@@ -1,0 +1,69 @@
+services:
+  fireshare:
+    image: {{ fireshare_image }}
+    container_name: fireshare
+    restart: unless-stopped
+    environment:
+      # Set on every deploy, not just the first. The upstream advice is to
+      # remove them once the account exists, but that only matters when they
+      # sit in a committed compose file; here they come from sops.
+      - ADMIN_USERNAME={{ fireshare_admin_user }}
+      - ADMIN_PASSWORD={{ fireshare_admin_password }}
+      - SECRET_KEY={{ fireshare_secret_key }}
+      # No scheme, no quotes. OpenGraph previews on shared links break without
+      # it, which is most of the point of handing someone a link.
+      - DOMAIN=clips.{{ base_domain }}
+      - MINUTES_BETWEEN_VIDEO_SCANS={{ fireshare_scan_minutes }}
+      - THUMBNAIL_VIDEO_LOCATION={{ fireshare_thumbnail_location }}
+      # Matches the idmap, so files written here land on tank owned by 13000
+      # rather than shifted into the 100000+ range.
+      - PUID={{ media_uid }}
+      - PGID={{ media_gid }}
+      - TZ={{ timezone }}
+      - ENABLE_TRANSCODING={{ fireshare_transcoding | lower }}
+      - TRANSCODE_GPU={{ fireshare_gpu | lower }}
+{% if fireshare_gpu %}
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - NVIDIA_VISIBLE_DEVICES=all
+{% endif %}
+    volumes:
+      # The sqlite database, in the rootfs on purpose: vzdump captures it, and
+      # it is the one piece of state a rescan cannot rebuild.
+      - {{ clips_dir }}/data:/data
+      # Posters and transcodes, on tank rather than the rootfs. A full transcode
+      # pass over the library needs about 90G against a 16G rootfs, and filling
+      # it truncates nginx's buffered /api responses, which empties the library
+      # in the UI. All of it regenerates from the source videos.
+      - {{ clips_media_dir }}/processed:/processed
+      # The library itself, bind-mounted from tank via the container's mount
+      # point. Also the Samba share, so dropping a clip in is all it takes.
+      - {{ clips_media_dir }}/videos:/videos
+      - {{ clips_media_dir }}/images:/images
+    ports:
+      - "{{ fireshare_port }}:80"
+{% if fireshare_gpu %}
+    runtime: nvidia
+{% endif %}
+
+  # The clip_maker review UI. Code and data both come from {{ review_dir }},
+  # which the desktop rsyncs into; nothing about this service is baked in, so a
+  # UI change is a push, not a redeploy. index.html is read per request,
+  # server.mjs is not, so only a server.mjs change needs a restart.
+  review:
+    image: {{ review_image }}
+    container_name: clip-review
+    restart: unless-stopped
+    user: "{{ media_uid }}:{{ media_gid }}"
+    working_dir: /review/app
+    command: ["node", "server.mjs"]
+    environment:
+      - PORT={{ review_internal_port }}
+      - REVIEW_ROOT=/review
+      - OUT_DIR=/out
+      - TZ={{ timezone }}
+    volumes:
+      - {{ review_dir }}:/review
+      # Finished compilations, so she can watch one back without leaving the UI.
+      - {{ clips_media_dir }}/clip_maker/out:/out:ro
+    ports:
+      - "{{ review_port }}:{{ review_internal_port }}"

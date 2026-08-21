@@ -1,0 +1,127 @@
+---
+# Joins the host to the headscale mesh. Everything private on this project lives
+# behind it: Forgejo, the artifact origin, and the internal game server are all
+# unreachable from the LAN or the internet.
+
+- name: Check the TUN device was passed through
+  ansible.builtin.stat:
+    path: /dev/net/tun
+  register: tailscale_tun
+
+# WireGuard needs the device and an unprivileged LXC cannot create it itself.
+- name: Fail without TUN
+  ansible.builtin.fail:
+    msg: >-
+      /dev/net/tun is missing. Add device_passthrough on this container's module
+      in live/prod/node/main.tf, apply, then `pct reboot` the container.
+  when: not tailscale_tun.stat.exists
+
+- name: Add the Tailscale apt key
+  ansible.builtin.get_url:
+    url: >-
+      https://pkgs.tailscale.com/stable/debian/{{ ansible_distribution_release }}.noarmor.gpg
+    dest: /etc/apt/keyrings/tailscale.gpg
+    mode: "0644"
+
+- name: Add the Tailscale repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/etc/apt/keyrings/tailscale.gpg]
+      https://pkgs.tailscale.com/stable/debian {{ ansible_distribution_release }} main
+    filename: tailscale
+    state: present
+
+- name: Install Tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    state: present
+    update_cache: true
+
+- name: Enable and start tailscaled
+  ansible.builtin.systemd:
+    name: tailscaled
+    enabled: true
+    state: started
+
+# Advertising a route means forwarding traffic for it, which the kernel drops
+# unless this is on.
+- name: Enable IP forwarding
+  ansible.posix.sysctl:
+    name: "{{ item }}"
+    value: "1"
+    sysctl_set: true
+    state: present
+    reload: true
+  loop:
+    - net.ipv4.ip_forward
+    - net.ipv6.conf.all.forwarding
+  when: tailscale_advertise_routes | length > 0
+
+# Exits non-zero while logged out but still prints the state, so read the output
+# rather than the return code.
+- name: Read the mesh state
+  ansible.builtin.command: tailscale status --json --peers=false
+  register: tailscale_status
+  changed_when: false
+  failed_when: false
+
+- name: Record whether the node is already on the mesh
+  ansible.builtin.set_fact:
+    tailscale_joined: >-
+      {{ (tailscale_status.stdout | from_json).BackendState | default('') == 'Running'
+         if tailscale_status.stdout | trim | length > 0 else false }}
+
+- name: Fail without an auth key
+  ansible.builtin.fail:
+    msg: >-
+      {{ inventory_hostname }} is not on the mesh and tailscale_auth_key is
+      empty. Mint one with `scripts/mesh-key.sh 24h tag:rack,tag:ci` in the aws
+      repo, then re-run with -e tailscale_auth_key=...
+  when:
+    - not tailscale_joined
+    - tailscale_auth_key | length == 0
+
+- name: Build the join arguments
+  ansible.builtin.set_fact:
+    tailscale_up_argv: >-
+      {{ ['tailscale', 'up',
+          '--login-server=' ~ tailscale_login_server,
+          '--authkey=' ~ tailscale_auth_key,
+          '--hostname=' ~ tailscale_hostname,
+          '--accept-routes=' ~ (tailscale_accept_routes | lower),
+          '--accept-dns=' ~ (tailscale_accept_dns | lower)]
+         + (['--advertise-routes=' ~ (tailscale_advertise_routes | join(','))]
+            if tailscale_advertise_routes | length > 0 else [])
+         + tailscale_up_extra_args }}
+  when: not tailscale_joined
+
+- name: Join the mesh
+  ansible.builtin.command:
+    argv: "{{ tailscale_up_argv }}"
+  when: not tailscale_joined
+  no_log: true
+
+# `up` would need a fresh single-use key to re-run, so ongoing settings are
+# reconciled with `set` instead: a changed route list applies on the next deploy.
+- name: Reconcile the mesh settings
+  ansible.builtin.command:
+    argv: >-
+      {{ ['tailscale', 'set',
+          '--hostname=' ~ tailscale_hostname,
+          '--accept-routes=' ~ (tailscale_accept_routes | lower),
+          '--accept-dns=' ~ (tailscale_accept_dns | lower),
+          '--advertise-routes=' ~ (tailscale_advertise_routes | join(','))] }}
+  changed_when: false
+
+- name: Read the mesh address
+  ansible.builtin.command: tailscale ip -4
+  register: tailscale_ip
+  changed_when: false
+
+- name: Report the mesh address
+  ansible.builtin.debug:
+    msg:
+      - "{{ tailscale_hostname }} is on the mesh at {{ tailscale_ip.stdout }}."
+      - >-
+        Advertised routes still need approving once on the AWS node:
+        headscale routes list, then headscale routes enable --route <id>.

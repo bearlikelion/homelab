@@ -15,6 +15,10 @@ services:
       - TZ={{ timezone }}
       # Let Docker handle updates; the image tag is pinned deliberately.
       - VERSION=docker
+{% if plex_gpu | default(false) %}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+{% endif %}
 {% if plex_claim | default('') | length > 0 %}
       # First run only: links this server to your account. Expires in 4 minutes.
       - PLEX_CLAIM={{ plex_claim }}
@@ -29,8 +33,7 @@ services:
       - /transcode
 {% if plex_gpu | default(false) %}
 
-    # Present only once a GPU is installed; no video engine on the onboard
-    # Matrox, so this stays off until then.
-    devices:
-      - /dev/dri:/dev/dri
+    # NVENC on the P400, not /dev/dri: that is the VAAPI path, and the
+    # proprietary driver does not expose this card through it.
+    runtime: nvidia
 {% endif %}

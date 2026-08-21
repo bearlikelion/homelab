@@ -1,0 +1,54 @@
+# Rendered by the forgejo_runner role. `forgejo-runner generate-config` prints
+# the annotated full version.
+log:
+  level: info
+  job_level: info
+
+runner:
+  file: .runner
+  capacity: {{ forgejo_runner_capacity }}
+  envs: {}
+  env_file: .env
+  timeout: {{ forgejo_runner_job_timeout }}
+  shutdown_timeout: {{ forgejo_runner_job_timeout }}
+  insecure: false
+  fetch_timeout: 5s
+  fetch_interval: 2s
+  report_interval: 1s
+  # Empty on purpose: the labels come from the .runner file written at
+  # registration, so they are changed by re-registering, not by editing this.
+  labels: []
+
+cache:
+  enabled: true
+  dir: ""
+  # Left empty so the runner detects the address a job container can reach it
+  # on. Pinning it to the LAN address would break once jobs run on a per-job
+  # network.
+  host: ""
+  port: 0
+  proxy_port: 0
+
+container:
+  # Empty creates a network per job, which keeps a build off the pinned
+  # 172.28.0.0/24 bridge the game cluster discovers itself on.
+  network: ""
+  enable_ipv6: false
+  privileged: false
+  options:
+  workdir_parent:
+  valid_volumes:
+{% for volume in forgejo_runner_valid_volumes %}
+    - {{ volume }}
+{% endfor %}
+  # "-" finds the daemon without mounting its socket into the job container. A
+  # job that could reach the socket would be root on the box running the game
+  # cluster.
+  docker_host: "-"
+  # The builder image is built locally and exists in no registry, so a forced
+  # pull would fail every job.
+  force_pull: false
+  force_rebuild: false
+
+host:
+  workdir_parent:

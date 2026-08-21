@@ -25,6 +25,8 @@
   hosts: plex
   become: true
   roles:
+    - role: nvidia
+      when: plex_gpu
     - plex
 
 - name: Deploy the edge proxy
@@ -50,6 +52,35 @@
   become: true
   roles:
     - backup
+
+- name: Deploy the clip share
+  hosts: clips
+  become: true
+  roles:
+    # Fireshare transcodes on the P400, so the userspace driver has to be in
+    # place before the stack starts.
+    - role: nvidia
+      when: fireshare_gpu
+    - clips
+
+- name: Deploy the Darkfall server cluster
+  hosts: darkfall
+  become: true
+  roles:
+    - darkfall
+
+# The same container doubles as the build rack. It is x86-64 where the AWS node
+# holding Forgejo is arm64, so this is where the game compiles. Forgejo is only
+# reachable over the mesh, so tailscale has to come first.
+- name: Deploy the build rack
+  hosts: darkfall
+  become: true
+  # Tagged so the rack can be deployed without the darkfall role re-walking the
+  # 19G dfdata push first.
+  tags: rack
+  roles:
+    - tailscale
+    - forgejo_runner
 
 - name: Deploy the build box
   hosts: build

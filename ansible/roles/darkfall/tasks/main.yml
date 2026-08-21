@@ -1,0 +1,260 @@
+---
+# The Darkfall server cluster: seven native nodes plus Postgres.
+#
+# The nodes are built on the workstation by UWDK and shipped here as artifacts,
+# because the toolchain and the 183G OGData checkout have no business in a
+# 32G container rootfs.
+#
+# The artifacts are bind-mounted, not baked into per-node images: a deploy is an
+# rsync of what changed plus a restart of the game group. Rebuilding seven
+# images to ship one recompiled binary recreated every container and cost a cold
+# boot behind the startup grace on each run.
+
+- name: Check the control node has the artifacts
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: darkfall_sources
+  delegate_to: localhost
+  become: false
+  changed_when: false
+  loop:
+    - "{{ darkfall_source }}/Build/Server-linux"
+    - "{{ darkfall_source }}/Build/Server/dfserver.jar"
+    - "{{ darkfall_source }}/docker/configs"
+    - "{{ darkfall_ogdata }}"
+
+- name: Fail without the artifacts
+  ansible.builtin.fail:
+    msg: >-
+      {{ item.item }} is missing on the control node. Build the cluster first:
+      uwdk build server && uwdk build jars.
+  when: not item.stat.exists
+  loop: "{{ darkfall_sources.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Verify the darkfall mount is present
+  ansible.builtin.command: mountpoint -q {{ darkfall_dir }}
+  register: darkfall_mount
+  changed_when: false
+  failed_when: false
+
+# mountpoint rather than stat: a bind mount that failed still leaves an empty
+# directory, and the sync would fill the 32G rootfs instead.
+- name: Fail without the darkfall mount
+  ansible.builtin.fail:
+    msg: >-
+      {{ darkfall_dir }} is not a mount point. It comes from mount_points on the
+      darkfall module in live/prod/node/main.tf, which is ForceNew: apply first.
+  when: darkfall_mount.rc != 0
+
+- name: Install rsync for the artifact push
+  ansible.builtin.apt:
+    name: rsync
+    state: present
+
+- name: Create the cluster directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ darkfall_stage_dir }}/SDK/jdk"
+    - "{{ darkfall_stage_dir }}/Build/Server"
+    - "{{ darkfall_stage_dir }}/Build/Server-linux"
+    - "{{ darkfall_stage_dir }}/ThirdParty"
+    - "{{ darkfall_stage_dir }}/docker"
+    - "{{ darkfall_stage_dir }}/deploy"
+    - "{{ darkfall_stage_dir }}/jars"
+
+# Deliberately no mode: the dfdata push is `rsync --archive`, which restores this
+# directory's own mode and ownership from the source tree. Forcing 0755 here made
+# the two tasks fight on every run -- the mode flipped back, the push reported
+# changed, and that rebuilt the 360k-entry index and restarted all seven nodes
+# for nothing.
+- name: Create the dfdata directory
+  ansible.builtin.file:
+    path: "{{ darkfall_dfdata_dir }}"
+    state: directory
+
+# A single-file rsync will not create its parent, and Scripts/ has no tree push
+# to bring it into existence first: without this the generate_sfai.py push dies
+# with "change_dir failed: No such file or directory".
+- name: Create the parents of the staged files
+  ansible.builtin.file:
+    path: "{{ darkfall_stage_dir }}/{{ item | dirname }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ darkfall_stage_files }}"
+
+# World-writable because the node containers write as root and Postgres writes
+# as its own uid, which differs between the alpine and debian images.
+- name: Create the log directory
+  ansible.builtin.file:
+    path: "{{ darkfall_log_dir }}"
+    state: directory
+    mode: "0777"
+
+# become would inject `sudo -u root rsync`, and the container has no sudo. The
+# connection is already root.
+- name: Push the build context trees
+  become: false
+  ansible.posix.synchronize:
+    src: "{{ darkfall_source }}/{{ item }}/"
+    dest: "{{ darkfall_stage_dir }}/{{ item }}/"
+    delete: true
+  loop: "{{ darkfall_stage_trees }}"
+  register: darkfall_trees
+
+- name: Push the build context files
+  become: false
+  ansible.posix.synchronize:
+    src: "{{ darkfall_source }}/{{ item }}"
+    dest: "{{ darkfall_stage_dir }}/{{ item }}"
+  loop: "{{ darkfall_stage_files }}"
+  register: darkfall_files
+
+# One binary per node, ~180M each. The rest of Build/Server-linux is objects and
+# static libraries the nodes never read.
+# --chmod: the binary is bind-mounted straight into the container, so its exec
+# bit has to be right here -- no image build runs to set it.
+- name: Push the node binaries
+  become: false
+  ansible.posix.synchronize:
+    src: "{{ darkfall_source }}/Build/Server-linux/{{ item.name }}"
+    dest: "{{ darkfall_stage_dir }}/Build/Server-linux/{{ item.name }}"
+    rsync_opts:
+      - --chmod=F755
+  loop: "{{ darkfall_nodes }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: darkfall_binaries
+
+# Flattened out of the pushed trees because the classpath in each node's
+# <node>.xml names /opt/darkfall/jars/<file>.jar directly, and that whole
+# directory is what gets mounted.
+- name: Assemble the runtime classpath
+  ansible.builtin.copy:
+    src: "{{ darkfall_stage_dir }}/{{ item }}"
+    dest: "{{ darkfall_stage_dir }}/jars/{{ item | basename }}"
+    remote_src: true
+    mode: "0644"
+  loop: "{{ darkfall_jars }}"
+  register: darkfall_jars_staged
+
+# Server-side trees only. texture alone is 75G against a 128G volume, and the
+# nodes never read it: every config sets LoadData="false".
+# delay_updates off: synchronize turns it on by default, which stages every file
+# in a sibling .~tmp~ and renames the lot at the end. On a 19G push that needs the
+# space twice over, and any file rsync retries mid-run has its temp discarded --
+# the rename pass then fails ENOENT and takes the whole task down with rc 23
+# (seen here: 610 discarded, then a wall of "rename failed ... No such file").
+# Nothing reads dfdata while the cluster is down, so an all-at-once swap buys
+# nothing, and a plain sync is resumable where the delayed one is not.
+- name: Push the server slice of dfdata
+  become: false
+  ansible.posix.synchronize:
+    src: "{{ darkfall_ogdata }}/"
+    dest: "{{ darkfall_dfdata_dir }}/"
+    delete: true
+    delay_updates: false
+    rsync_opts: "{{ darkfall_dfdata_excludes | map('regex_replace', '^', '--exclude=/') | list }}"
+  register: darkfall_dfdata
+
+- name: Check for an existing dfdata archive index
+  ansible.builtin.stat:
+    path: "{{ darkfall_dir }}/dfdata.sfai"
+  register: darkfall_sfai
+
+# Built here rather than pushed: dfdata is synced as a filtered server slice, so an
+# index generated from the full workstation tree would name files the VM does not have.
+# Without it every node stat()s all 360k entries at boot, 48-76s each, seven at once.
+- name: Build the dfdata archive index
+  ansible.builtin.command:
+    cmd: >-
+      python3 {{ darkfall_stage_dir }}/Scripts/generate_sfai.py
+      {{ darkfall_dfdata_dir }} {{ darkfall_dir }}/dfdata.sfai.new
+  changed_when: true
+  when: darkfall_dfdata is changed or not darkfall_sfai.stat.exists
+
+- name: Publish the dfdata archive index
+  ansible.builtin.command:
+    cmd: mv {{ darkfall_dir }}/dfdata.sfai.new {{ darkfall_dir }}/dfdata.sfai
+  changed_when: true
+  when: darkfall_dfdata is changed or not darkfall_sfai.stat.exists
+
+- name: Install the status page
+  ansible.builtin.copy:
+    src: status_server.py
+    dest: "{{ darkfall_stage_dir }}/status_server.py"
+    mode: "0644"
+  register: darkfall_status
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ darkfall_stage_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: darkfall_compose
+
+# The only image in the cluster: Debian plus the shared libs and the vendored
+# JRE. Everything that changes per build is mounted, so this is rebuilt for a
+# new JDK and essentially never otherwise.
+- name: Build the runtime base image
+  community.docker.docker_image_build:
+    name: "{{ darkfall_base_image }}"
+    tag: "{{ darkfall_base_tag }}"
+    path: "{{ darkfall_stage_dir }}"
+    dockerfile: docker/Dockerfile.runtime-base
+    rebuild: "{{ 'always' if darkfall_trees is changed else 'never' }}"
+
+# Creates the cluster on a first run and reconciles it against the rendered
+# compose afterwards. Containers are recreated only when their definition or
+# the base image actually changed, which on an ordinary deploy is neither.
+- name: Start or reconcile the cluster
+  community.docker.docker_compose_v2:
+    project_src: "{{ darkfall_stage_dir }}"
+    state: present
+    pull: missing
+  register: darkfall_cluster
+
+# A mounted binary is picked up on exec, so a new build needs a restart and
+# nothing else. All seven go together: a lone restarted node trips a
+# reconnect-crash bug in its peers, which is what the watchdog exists to contain.
+# Skipped when the reconcile above already recreated them.
+- name: Restart the game nodes for the new build
+  community.docker.docker_compose_v2:
+    project_src: "{{ darkfall_stage_dir }}"
+    state: restarted
+    services: "{{ darkfall_nodes | map(attribute='name') | list }}"
+  when:
+    - not darkfall_cluster.changed
+    - >-
+      darkfall_binaries is changed or darkfall_jars_staged is changed
+      or darkfall_trees is changed or darkfall_dfdata is changed
+
+- name: Restart the status page when it changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ darkfall_stage_dir }}"
+    state: restarted
+    services:
+      - status
+  when: not darkfall_cluster.changed and darkfall_status is changed
+
+# The engine loads the zone geometry before any node reaches asRun, so the
+# frontend does not accept clients for a couple of minutes after a cold start.
+- name: Wait for the frontend to accept clients
+  ansible.builtin.wait_for:
+    port: "{{ darkfall_client_port }}"
+    host: 127.0.0.1
+    timeout: "{{ darkfall_startup_grace }}"
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Cluster on {{ darkfall_ip }}: client {{ darkfall_client_port }}, admin {{ darkfall_admin_port }}."
+      - "Node logs in {{ darkfall_log_dir }}, Postgres on 127.0.0.1:{{ darkfall_db_port }}."
+      - "Player status page: http://{{ darkfall_ip }}:{{ darkfall_status_port }}/"
+      - "Operator view: http://{{ darkfall_ip }}:{{ darkfall_status_port }}/ops"
+      - "Rebuild on the workstation with `uwdk build server`, then re-run this play to ship it."
+      - "Nodes run {{ darkfall_base_image }}:{{ darkfall_base_tag }} and mount their binary from {{ darkfall_stage_dir }}/Build/Server-linux."

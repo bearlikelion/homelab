@@ -1,0 +1,10 @@
+# Rendered by the forgejo_runner role.
+#
+# The stock runner image is bare Alpine running as 1000:1000. A rack-host job
+# runs inside this container rather than in a job container, and
+# deploy-internal.yml shells out to docker compose and rsync, so both have to be
+# here and the daemon needs root to reach the host docker socket at all.
+FROM {{ forgejo_runner_base_image }}
+
+USER root
+RUN apk add --no-cache docker-cli docker-cli-compose rsync

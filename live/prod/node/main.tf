@@ -93,6 +93,12 @@ variable "build_root" {
   default     = "/fast/build"
 }
 
+variable "clips_root" {
+  description = "Host path holding the game clip library. Its own dataset, so it can be snapshotted and shared separately from the media library."
+  type        = string
+  default     = "/tank/clips"
+}
+
 # --- Shared values ----------------------------------------------------------
 
 locals {
@@ -112,6 +118,21 @@ locals {
     { type = "gid", container_id = local.media_gid, host_id = local.media_gid, size = 1 },
     { type = "gid", container_id = local.media_gid + 1, host_id = 100000 + local.media_gid + 1, size = 65536 - local.media_gid - 1 },
   ]
+
+  # Quadro P400 (GP107) at 83:00.0, driver 580.178.04 on the host. The kernel
+  # module stays on the host; a container only ever gets the character devices
+  # plus a matching userspace driver installed with --no-kernel-module.
+  #
+  # These nodes are created on first use rather than at boot, so a container
+  # starting before anything has touched the GPU finds nothing to pass through.
+  # The systemd unit in scripts/pve-nvidia-prep.sh creates them early.
+  nvidia_devices = {
+    nvidia0   = { path = "/dev/nvidia0", mode = "0666" }
+    nvidiactl = { path = "/dev/nvidiactl", mode = "0666" }
+    # NVENC runs through a CUDA context, so uvm is required, not optional.
+    nvidia_uvm       = { path = "/dev/nvidia-uvm", mode = "0666" }
+    nvidia_uvm_tools = { path = "/dev/nvidia-uvm-tools", mode = "0666" }
+  }
 }
 
 # --- Plex -------------------------------------------------------------------
@@ -119,9 +140,8 @@ locals {
 # need to share a filesystem with the *arr apps. Keeping it in its own
 # container also isolates GPU passthrough, when a card is added later.
 #
-# No device_passthrough yet: the only display adapter is the BMC's Matrox
-# G200eW, which has no video engine. Transcoding is CPU-only until a GPU is
-# installed. Adding one later does NOT recreate the container.
+# The Quadro P400 is passed in, but plex_gpu in group_vars still gates whether
+# the compose file asks for it. Flip that flag to move transcoding onto NVENC.
 
 module "plex" {
   source = "../../../modules/lxc"
@@ -148,6 +168,8 @@ module "plex" {
       read_only = true
     }
   }
+
+  device_passthrough = local.nvidia_devices
 
   idmap = local.media_idmap
 
@@ -286,6 +308,113 @@ module "social" {
   startup_order = 30
 }
 
+# --- Darkfall ---------------------------------------------------------------
+# Game server, written down after the fact: it was applied from a working copy
+# that never landed in this file, so tofu had it in state with no configuration
+# to match and planned a destroy on every run.
+#
+# Every value here is copied from the live container rather than chosen. The
+# mount point in particular names the allocated volume in full, not just the
+# datastore: mount_point is ForceNew, and "fast-vm" alone reads as a change and
+# would take the 128G disk with it.
+
+module "darkfall" {
+  source = "../../../modules/lxc"
+
+  node_name        = var.node_name
+  vm_id            = 180
+  hostname         = "darkfall"
+  template_file_id = var.template_file_id
+
+  cores     = 8
+  memory    = 32768
+  disk_size = 32
+
+  ipv4_address = "192.168.1.180/24"
+  ipv4_gateway = var.gateway
+  dns_servers  = var.dns_servers
+
+  ssh_public_keys = var.ssh_public_keys
+
+  mount_points = {
+    data = {
+      volume = "fast-vm:subvol-180-disk-0"
+      path   = "/srv/darkfall"
+      size   = "128G"
+      backup = false
+    }
+  }
+
+  # The container doubles as the build rack and joins the headscale mesh, which
+  # is WireGuard. An unprivileged LXC cannot create the device itself.
+  #
+  # NOT YET APPLIED. The device is currently provided by two hand-written lines
+  # in /etc/pve/lxc/180.conf that predate this block and that tofu knows nothing
+  # about, so a recreate would silently drop them. Applying this needs a window:
+  # it restarts the container, and both mechanisms would otherwise mount into
+  # dev/net at once. Delete these from 180.conf in the same pass:
+  #   lxc.cgroup2.devices.allow: c 10:200 rwm
+  #   lxc.mount.entry: /dev/net dev/net none bind,create=dir
+  device_passthrough = {
+    tun = {
+      path = "/dev/net/tun"
+      mode = "0666"
+    }
+  }
+
+  tags          = ["game", "tofu"]
+  startup_order = 35
+}
+
+# --- Clips ------------------------------------------------------------------
+# Fireshare, for sharing game clips by link. Its own container rather than a
+# service on media: this one is published to the internet, and the *arr stack
+# has read-write access to the whole library.
+#
+# The clip library is a bind mount from its own dataset. Only /data (the sqlite
+# database) stays in the rootfs, so vzdump captures the state that cannot be
+# regenerated and skips the videos that can be re-scanned. Posters and
+# transcodes live on the same dataset as the videos: a full transcode pass over
+# the library runs to roughly 90G, well past anything the rootfs can hold.
+
+module "clips" {
+  source = "../../../modules/lxc"
+
+  node_name        = var.node_name
+  vm_id            = 200
+  hostname         = "clips"
+  template_file_id = var.template_file_id
+
+  cores     = 4
+  memory    = 4096
+  disk_size = 16
+
+  ipv4_address = "192.168.1.200/24"
+  ipv4_gateway = var.gateway
+  dns_servers  = var.dns_servers
+
+  ssh_public_keys = var.ssh_public_keys
+
+  mount_points = {
+    clips = {
+      volume    = var.clips_root
+      path      = "/srv/clips"
+      read_only = false
+    }
+  }
+
+  # NVENC on the P400, so a shared clip is transcoded to 720p/1080p variants
+  # without burning cores the build box wants. GP107 encodes H.264 and HEVC;
+  # AV1 needs Ada or newer, so Fireshare falls back to h264_nvenc.
+  device_passthrough = local.nvidia_devices
+
+  idmap = local.media_idmap
+
+  # 180 and 35 both belong to darkfall.
+  tags          = ["clips", "tofu"]
+  startup_order = 45
+}
+
 # --- Build ------------------------------------------------------------------
 # C++ build box, so compiling Godot stops tying up a laptop. The host is a
 # dual E5-2690 (32 threads), and the containers above only ever reserve 16
@@ -368,6 +497,10 @@ module "files" {
       volume = "/tank/bulk"
       path   = "/srv/samba/tank/bulk"
     }
+    clips = {
+      volume = var.clips_root
+      path   = "/srv/samba/tank/clips"
+    }
     backup = {
       volume = "/tank/backup"
       path   = "/srv/samba/tank/backup"
@@ -448,6 +581,16 @@ output "containers" {
       vm_id    = module.social.vm_id
       hostname = module.social.hostname
       ip       = module.social.ip
+    }
+    clips = {
+      vm_id    = module.clips.vm_id
+      hostname = module.clips.hostname
+      ip       = module.clips.ip
+    }
+    darkfall = {
+      vm_id    = module.darkfall.vm_id
+      hostname = module.darkfall.hostname
+      ip       = module.darkfall.ip
     }
     build = {
       vm_id    = module.build.vm_id

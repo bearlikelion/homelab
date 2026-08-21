@@ -1,0 +1,120 @@
+---
+# NVIDIA userspace inside a container, so Docker can hand the GPU to a workload.
+#
+# Split in two on purpose: the kernel module is the host's (see
+# scripts/pve-nvidia-prep.sh), and only the libraries and the container runtime
+# hook belong here. The two halves must be the same version.
+
+- name: Check the device nodes were passed through
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: nvidia_nodes
+  loop:
+    - /dev/nvidia0
+    - /dev/nvidiactl
+    - /dev/nvidia-uvm
+
+- name: Fail without the device nodes
+  ansible.builtin.fail:
+    msg: >-
+      {{ item.item }} is missing. Either device_passthrough on this container's
+      module in live/prod/node/main.tf is not applied, or the host created the
+      nodes lazily and the container started first. Run
+      scripts/pve-nvidia-prep.sh on the host, then `pct reboot` this container.
+  when: not item.stat.exists
+  loop: "{{ nvidia_nodes.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Install prerequisites for the driver installer
+  ansible.builtin.apt:
+    name:
+      - kmod
+      - pkg-config
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Check the installed driver version
+  ansible.builtin.command: nvidia-smi --query-gpu=driver_version --format=csv,noheader
+  register: nvidia_installed
+  changed_when: false
+  failed_when: false
+
+- name: Fetch the driver installer
+  ansible.builtin.get_url:
+    url: "{{ nvidia_run_url }}"
+    dest: /tmp/nvidia-{{ nvidia_driver_version }}.run
+    mode: "0755"
+  when: nvidia_driver_version not in nvidia_installed.stdout
+
+# Userspace only. The kernel module is already loaded on the host, and the
+# libraries in here talk to it through the passed-in character devices.
+- name: Install the userspace driver
+  ansible.builtin.command: >-
+    /tmp/nvidia-{{ nvidia_driver_version }}.run {{ nvidia_run_args }}
+  when: nvidia_driver_version not in nvidia_installed.stdout
+  register: nvidia_install
+
+- name: Remove the installer
+  ansible.builtin.file:
+    path: /tmp/nvidia-{{ nvidia_driver_version }}.run
+    state: absent
+
+- name: Add the NVIDIA container toolkit apt key
+  ansible.builtin.get_url:
+    url: https://nvidia.github.io/libnvidia-container/gpgkey
+    dest: /etc/apt/keyrings/nvidia-container-toolkit.asc
+    mode: "0644"
+
+- name: Add the NVIDIA container toolkit repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/etc/apt/keyrings/nvidia-container-toolkit.asc]
+      https://nvidia.github.io/libnvidia-container/stable/deb/amd64 /
+    filename: nvidia-container-toolkit
+    state: present
+
+- name: Install the NVIDIA container toolkit
+  ansible.builtin.apt:
+    name: nvidia-container-toolkit
+    state: present
+    update_cache: true
+
+# no-cgroups, because an unprivileged LXC does not own the cgroup hierarchy the
+# hook would otherwise try to write. Without it every GPU container dies at
+# start with "failed to initialize nvidia container: cgroup subsystem devices".
+- name: Disable cgroup handling in the container runtime
+  ansible.builtin.lineinfile:
+    path: /etc/nvidia-container-runtime/config.toml
+    regexp: '^#?\s*no-cgroups\s*='
+    line: "no-cgroups = true"
+    state: present
+  register: nvidia_cgroups
+
+- name: Check whether Docker already knows the runtime
+  ansible.builtin.command: docker info --format '{{ "{{" }}.Runtimes{{ "}}" }}'
+  register: nvidia_runtimes
+  changed_when: false
+
+- name: Register the runtime with Docker
+  ansible.builtin.command: nvidia-ctk runtime configure --runtime=docker
+  when: "'nvidia' not in nvidia_runtimes.stdout"
+  register: nvidia_ctk
+
+- name: Restart Docker when the runtime changed
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+  when: >-
+    nvidia_cgroups.changed or nvidia_ctk.changed | default(false)
+    or nvidia_install.changed | default(false)
+
+- name: Verify the GPU is visible
+  ansible.builtin.command: nvidia-smi --query-gpu=name,driver_version --format=csv,noheader
+  register: nvidia_check
+  changed_when: false
+
+- name: Report the GPU
+  ansible.builtin.debug:
+    msg: "GPU: {{ nvidia_check.stdout }}"

@@ -34,6 +34,14 @@ all:
       hosts:
         backup:
           ansible_host: 192.168.1.170
+    darkfall:
+      hosts:
+        darkfall:
+          ansible_host: 192.168.1.180
+    clips:
+      hosts:
+        clips:
+          ansible_host: 192.168.1.200
     files:
       hosts:
         files:

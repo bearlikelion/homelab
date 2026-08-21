@@ -36,6 +36,7 @@ samba_expected_datasets:
   - documents
   - bulk
   - backup
+  - clips
 
 # Names only. Each needs a samba_<name>_password in the sops secrets file; the
 # _password suffix is what .sops.yaml keys its encryption off.

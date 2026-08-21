@@ -13,6 +13,11 @@ ENV    ?= prod
 LAYER  ?= node
 LAYERS := network node
 
+# tofu only auto-loads terraform.tfvars and *.auto.tfvars, so <env>.tfvars has
+# to be passed by hand. Without it tofu prompts for variables it already has,
+# and a list typed at a prompt is read as a string and rejected.
+TFVARS  = $(if $(wildcard live/$(ENV)/$(LAYER)/$(ENV).tfvars),-var-file=$(ENV).tfvars,)
+
 .PHONY: help init plan apply destroy apply-all fmt validate inventory deploy check-host
 
 help: ## Show this help
@@ -22,18 +27,19 @@ init: ## Init one layer:   make ENV=prod LAYER=node init
 	cd live/$(ENV)/$(LAYER) && tofu init
 
 plan: ## Plan one layer:   make ENV=prod LAYER=node plan
-	cd live/$(ENV)/$(LAYER) && tofu init -input=false && tofu plan
+	cd live/$(ENV)/$(LAYER) && tofu init -input=false && tofu plan $(TFVARS)
 
 apply: ## Apply one layer:  make ENV=prod LAYER=node apply
-	cd live/$(ENV)/$(LAYER) && tofu init -input=false && tofu apply
+	cd live/$(ENV)/$(LAYER) && tofu init -input=false && tofu apply $(TFVARS)
 
 destroy: ## Destroy one layer: make ENV=prod LAYER=node destroy
-	cd live/$(ENV)/$(LAYER) && tofu destroy
+	cd live/$(ENV)/$(LAYER) && tofu destroy $(TFVARS)
 
 apply-all: ## Apply every layer in dependency order
 	@for l in $(LAYERS); do \
 	  echo "=== apply $(ENV)/$$l ==="; \
-	  (cd live/$(ENV)/$$l && tofu init -input=false && tofu apply -auto-approve) || exit 1; \
+	  (cd live/$(ENV)/$$l && tofu init -input=false && tofu apply -auto-approve \
+	     $(if $(wildcard live/$(ENV)/$$l/$(ENV).tfvars),-var-file=$(ENV).tfvars,)) || exit 1; \
 	done
 
 fmt: ## Format all .tf files

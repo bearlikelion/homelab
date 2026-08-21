@@ -1,0 +1,176 @@
+---
+# Fireshare: game clips, shared by link.
+#
+# The only service besides Plex with a public name. Fireshare's own login gates
+# the private feed and the upload page; the public feed is deliberately open to
+# anyone holding the URL, which is what makes a shared link work.
+
+- name: Fail early without the admin credentials
+  ansible.builtin.assert:
+    that:
+      - fireshare_admin_password | default('') | length > 0
+      - fireshare_secret_key | default('') | length > 0
+    fail_msg: >-
+      fireshare_admin_password and fireshare_secret_key live in
+      ansible/group_vars/all/secrets.sops.yml. Rotating the secret key
+      invalidates every session and every signed share link.
+
+- name: Verify the clips mount is present
+  ansible.builtin.command: mountpoint -q {{ clips_media_dir }}
+  register: clips_mount
+  changed_when: false
+  failed_when: false
+
+# mountpoint rather than stat: a bind mount that failed still leaves an empty
+# directory, and Fireshare would happily scan it and report a library of zero.
+- name: Fail without the clips mount
+  ansible.builtin.fail:
+    msg: >-
+      {{ clips_media_dir }} is not a mount point. It comes from mount_points on
+      the clips module in live/prod/node/main.tf, which is ForceNew: apply
+      before deploying.
+  when: clips_mount.rc != 0
+
+# rsync receives the desktop's publish. ffmpeg builds the review proxies: the
+# desktop drives the encode over ssh but the work happens here, because this box
+# reads the 254G source library off the bind mount rather than over CIFS, and
+# the P400 does the NVENC either way. Only this box needs them, so they are not
+# in the common role.
+- name: Install the tools the desktop drives remotely
+  ansible.builtin.apt:
+    name:
+      - rsync
+      - ffmpeg
+    state: present
+
+- name: Create the library directories
+  ansible.builtin.file:
+    path: "{{ clips_media_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ media_uid }}"
+    group: "{{ media_gid }}"
+    mode: "0775"
+  loop:
+    - videos
+    - images
+    - processed
+
+# Owned by the media identity because the review container runs as that uid and
+# writes state/ back. Everything else here arrives from the desktop's push.
+- name: Create the review directories
+  ansible.builtin.file:
+    path: "{{ review_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ media_uid }}"
+    group: "{{ media_gid }}"
+    mode: "0775"
+  loop:
+    - app
+    - proxy
+    - analysis
+    - transcripts
+    - state
+
+- name: Create the stack directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ media_uid }}"
+    group: "{{ media_gid }}"
+    mode: "0775"
+  loop:
+    - "{{ clips_dir }}"
+    - "{{ clips_dir }}/data"
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ clips_dir }}/docker-compose.yml"
+    mode: "0600"
+  no_log: true
+  register: clips_compose
+
+- name: Start Fireshare
+  community.docker.docker_compose_v2:
+    project_src: "{{ clips_dir }}"
+    state: present
+    pull: missing
+
+- name: Restart when the compose file changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ clips_dir }}"
+    state: restarted
+  when: clips_compose.changed
+
+- name: Wait for the web interface
+  ansible.builtin.wait_for:
+    port: "{{ fireshare_port }}"
+    host: 127.0.0.1
+    timeout: 300
+
+- name: Check whether the review UI has been published
+  ansible.builtin.stat:
+    path: "{{ review_dir }}/app/server.mjs"
+  register: clips_review_app
+
+- name: Wait for the review UI
+  ansible.builtin.wait_for:
+    port: "{{ review_port }}"
+    host: 127.0.0.1
+    timeout: 60
+  when: clips_review_app.stat.exists
+
+# Not a failure on a cold box: the compose service exists before the code does,
+# and clip-review restarts until the first push lands.
+- name: Report an unpublished review UI
+  ansible.builtin.debug:
+    msg: >-
+      {{ review_dir }}/app is empty. clip-review will restart until
+      `npm run review:push` runs in ~/dev/clip_maker.
+  when: not clips_review_app.stat.exists
+
+# encoder_preference and the privacy default live in Fireshare's own
+# config.json, which the app creates on first start and the admin UI writes to.
+# Patch only the keys the playbook owns and leave the rest of the file alone.
+# Both are read fresh at the start of every transcode run, so no restart.
+- name: Read the Fireshare config
+  ansible.builtin.slurp:
+    src: "{{ clips_dir }}/data/config.json"
+  register: clips_config_raw
+
+- name: Patch the settings the playbook owns
+  ansible.builtin.copy:
+    content: >-
+      {{ clips_config_raw.content | b64decode | from_json | combine({
+        'transcoding': {'encoder_preference': fireshare_encoder_preference},
+        'app_config': {'video_defaults': {'private': fireshare_video_private}}
+      }, recursive=True) | to_nice_json }}
+    dest: "{{ clips_dir }}/data/config.json"
+    owner: "{{ media_uid }}"
+    group: "{{ media_gid }}"
+    mode: "0600"
+
+# Proves the GPU reached ffmpeg, not just the container. Without this the first
+# sign of a broken passthrough is silent CPU transcoding months later.
+- name: Verify NVENC is available to Fireshare
+  ansible.builtin.command: docker exec fireshare ffmpeg -hide_banner -encoders
+  register: clips_encoders
+  changed_when: false
+  failed_when: false
+  when: fireshare_gpu
+
+- name: Report the encoder Fireshare will use
+  ansible.builtin.debug:
+    msg: >-
+      {{ 'h264_nvenc available' if 'h264_nvenc' in clips_encoders.stdout | default('')
+      else 'NVENC NOT available, transcoding will fall back to CPU' }}
+  when: fireshare_gpu
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Fireshare at https://clips.{{ base_domain }}, login {{ fireshare_admin_user }}"
+      - "Carina drops clips in \\\\{{ files_ip }}\\tank\\clips\\videos; a scan runs every {{ fireshare_scan_minutes }} min."
+      - "clips.{{ base_domain }} needs a CNAME to {{ ddns_subdomain }}.{{ base_domain }} in Cloudflare, same as plex."
+      - "Clip review at https://review.{{ internal_domain }}, internal only, no auth."
+      - "Publish it from the desktop: cd ~/dev/clip_maker && npm run review:push"

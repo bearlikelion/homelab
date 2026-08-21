@@ -1,0 +1,33 @@
+# Rendered by the forgejo_runner role. Mirrors rack/docker-compose.yml in the
+# aws repo, minus the artifact origin.
+#
+# The runner uses the host docker daemon to start a fresh container per job.
+# That is root-equivalent on this box, which is exactly why the runner lives
+# here and not on the AWS node holding Forgejo and the mesh control plane.
+name: pgp-rack
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  runner:
+    image: {{ forgejo_runner_image }}:{{ forgejo_runner_tag }}
+    restart: unless-stopped
+    command: forgejo-runner daemon --config /data/config.yaml
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - {{ rack_dir }}/runner:/data
+      # Warm bare-repo cache. The game repo carries ~50G of submodule history
+      # (Data 38G, SDK 8.6G, Run 3.4G); re-cloning it per job is not viable.
+      - {{ rack_dir }}/cache:/cache
+      - {{ rack_dir }}/scripts:/ci-scripts:ro
+      - {{ rack_builds_dir }}:/builds
+      # A rack-host job runs in here, so the paths deploy-internal.yml writes
+      # have to resolve to the real ones.
+      - {{ darkfall_dir }}:{{ darkfall_dir }}
+    logging: *default-logging

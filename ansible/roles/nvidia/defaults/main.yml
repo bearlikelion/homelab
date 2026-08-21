@@ -1,0 +1,15 @@
+---
+# Must match the host's kernel module exactly. Check with `nvidia-smi` on the
+# PVE host; a mismatch fails at runtime with "Failed to initialize NVML: Driver/
+# library version mismatch" rather than at install time.
+nvidia_driver_version: "580.178.04"
+
+nvidia_run_url: >-
+  https://us.download.nvidia.com/XFree86/Linux-x86_64/{{ nvidia_driver_version
+  }}/NVIDIA-Linux-x86_64-{{ nvidia_driver_version }}.run
+
+# The kernel module lives on the host. Installing it here would fail anyway:
+# a container has no kernel of its own to build against. --silent already
+# implies --no-questions and --ui=none.
+nvidia_run_args: >-
+  --silent --no-kernel-module --no-drm --no-nouveau-check

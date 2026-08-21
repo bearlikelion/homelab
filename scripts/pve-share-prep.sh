@@ -16,12 +16,22 @@ set -euo pipefail
 MEDIA_ID=13000
 # tank/backup is absent on purpose: it holds the restic repositories and the
 # vzdump archives, and nothing that a desktop can write to should reach them.
-DATASETS=(tank/media tank/documents tank/bulk)
+DATASETS=(tank/media tank/documents tank/bulk tank/clips)
 
 id -u mediauser >/dev/null 2>&1 || {
   echo "mediauser ($MEDIA_ID) missing. Run pve-bootstrap.sh first." >&2
   exit 1
 }
+
+echo "==> Datasets"
+for ds in "${DATASETS[@]}"; do
+  if zfs list -H -o name "$ds" >/dev/null 2>&1; then
+    echo "    $ds exists"
+  else
+    echo "    $ds missing; creating"
+    zfs create "$ds"
+  fi
+done
 
 echo "==> ZFS properties"
 for ds in "${DATASETS[@]}"; do

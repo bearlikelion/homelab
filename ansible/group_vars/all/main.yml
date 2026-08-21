@@ -55,6 +55,7 @@ vpn_ip: 192.168.1.140
 build_ip: 192.168.1.150
 social_ip: 192.168.1.160
 backup_ip: 192.168.1.170
+clips_ip: 192.168.1.200
 
 # Internal names, resolved by AdGuard and reachable only on the LAN or over the
 # VPN. Purpose-based rather than app-based: what it does, not what runs it.
@@ -89,6 +90,16 @@ internal_services:
     upstream_tls: true
   - name: social
     upstream: "{{ social_ip }}:{{ postiz_port }}"
+  # Also public as clips.{{ base_domain }}. The internal name is what actually
+  # works on the LAN; Fireshare's DOMAIN stays the public one, because that is
+  # the name that has to appear in a shared link's OpenGraph preview.
+  - name: clips
+    upstream: "{{ clips_ip }}:{{ fireshare_port }}"
+  # The clip_maker review tool, on the same box. Internal only and deliberately
+  # absent from public_services: its POST routes have no auth and write files,
+  # and the clips it shows include the ones flagged for slurs.
+  - name: review
+    upstream: "{{ clips_ip }}:{{ review_port }}"
   - name: backup
     upstream: "{{ backup_ip }}:{{ backrest_port }}"
   # Proxmox serves https with its own self-signed cert, so Caddy has to dial
@@ -110,6 +121,10 @@ internal_services:
 public_services:
   - name: plex
     upstream: "{{ plex_ip }}:32400"
+  # Public because a share link that only resolves on the LAN is not a share
+  # link. Fireshare's own login gates uploads and the private feed.
+  - name: clips
+    upstream: "{{ clips_ip }}:{{ fireshare_port }}"
 
 ddns_subdomain: home
 
@@ -168,7 +183,9 @@ adguard_password_hash: "$2b$10$/nJn6Whuyu6QwO6VxbmZy.PeWTmf68FMFKkAWrvMDAaxFsVYb
 
 # --- Plex -------------------------------------------------------------------
 
-# Set true once a GPU with a video engine is installed.
+# The P400 is passed in and the driver is on the host, so this is now just a
+# switch. Hardware transcoding needs a Plex Pass; without one Plex ignores the
+# GPU and falls back to CPU regardless.
 plex_gpu: false
 
 # Generate at https://plex.tv/claim right before deploying; valid 4 minutes.
@@ -221,3 +238,169 @@ postiz_port: 5000
 social_dir: /opt/social
 # Leave false for the first deploy so you can create an account, then flip it.
 postiz_disable_registration: false
+
+# --- Clips (Fireshare) ------------------------------------------------------
+# The CUDA image rather than -lite: -lite drops the NVENC build of ffmpeg and
+# silently ignores TRANSCODE_GPU.
+
+fireshare_image: shaneisrael/fireshare:1.7.6
+fireshare_port: 8080
+clips_dir: /opt/clips
+clips_media_dir: /srv/clips
+
+fireshare_admin_user: carina
+fireshare_scan_minutes: 5
+# 0 takes the first frame. A Holdfast clip usually opens mid-action, so the
+# first frame makes a better poster than the midpoint of an edited-down clip.
+fireshare_thumbnail_location: 0
+
+# Generates 720p/1080p variants so a shared link plays for someone on a phone
+# without pulling the full-quality original.
+fireshare_transcoding: true
+
+# h264 rather than auto. auto tries AV1 NVENC on every clip before falling back,
+# and the P400 cannot encode AV1, so each attempt is a guaranteed failure that
+# still costs an ffmpeg spawn. h264 asks for h264_nvenc with a CPU fallback.
+fireshare_encoder_preference: h264
+
+# The public feed is the whole library, not a per-clip opt-in. Fireshare's own
+# default is private; this flips it for newly scanned clips.
+fireshare_video_private: false
+
+# --- GPU --------------------------------------------------------------------
+# Quadro P400 (GP107) at 83:00.0. Passed into plex and clips by the modules in
+# live/prod/node/main.tf; these flags decide whether the workload asks for it.
+#
+# NVENC generation 6: H.264 and HEVC encode. AV1 needs Ada or newer, so
+# Fireshare picks h264_nvenc.
+
+fireshare_gpu: true
+
+# --- Clip review UI ---------------------------------------------------------
+# review/server.mjs from ~/dev/clip_maker, run straight off a stock node image.
+# It has no npm dependencies, so there is nothing to build and no image to
+# maintain; the desktop publishes the code and the data together with
+# `npm run review:push`.
+
+review_image: node:22-bookworm-slim
+review_port: 8081
+review_dir: "{{ clips_media_dir }}/clip_maker/review"
+
+# Unprivileged inside the container, so it cannot bind 80.
+review_internal_port: 5178
+
+# --- Darkfall (game server cluster) ------------------------------------------
+# Seven native Linux nodes plus Postgres, the topology in OGDarkfall's
+# ServerLayout.xml. Internal only: nothing here is published.
+
+darkfall_ip: 192.168.1.180
+darkfall_dir: /srv/darkfall
+darkfall_stage_dir: "{{ darkfall_dir }}/stage"
+darkfall_dfdata_dir: "{{ darkfall_dir }}/dfdata"
+darkfall_log_dir: "{{ darkfall_dir }}/logs"
+
+# Built on the workstation by UWDK, which is the control node for this play.
+darkfall_source: /mnt/SSD/Darkfall/src/OGDarkfall
+darkfall_ogdata: /mnt/SSD/Darkfall/OGData
+
+# Ceilings, not reservations: the sum oversubscribes the container's 8 cores on
+# purpose so a well-behaved node is never throttled.
+darkfall_nodes:
+  - name: dbserver
+    cpus: "0.5"
+    memory: 2g
+  - name: gamelogicdist
+    cpus: "1.0"
+    memory: 2g
+  # Native C++: loads the zone terrain and collision into native memory at init.
+  - name: engine
+    cpus: "2.0"
+    memory: 6g
+  - name: gamelogic
+    cpus: "1.5"
+    memory: 6g
+  # Heap is modest, but the full_agon navmesh adds ~3.5G off-heap once spawning starts.
+  - name: aigamelogic
+    cpus: "2.0"
+    memory: 8g
+  - name: statsserver
+    cpus: "1.0"
+    memory: 2g
+  - name: frontend
+    cpus: "1.0"
+    memory: 2g
+
+darkfall_stage_trees:
+  - SDK/jdk/linux-x64
+  - Build/Server/recast
+  - Build/ExternalDLL
+  - ThirdParty/ExternalDLL
+  - docker/configs
+  - deploy/pg
+
+darkfall_stage_files:
+  - Build/Server/dfserver.jar
+  - Scripts/generate_sfai.py
+  - docker/Dockerfile.runtime-base
+  - docker/node-entrypoint.sh
+  - docker/mgmt-watchdog.sh
+
+# The one image the cluster runs. Every node is the same base plus a
+# bind-mounted binary, so shipping a build is an rsync and a restart instead of
+# seven image builds and a cold recreate.
+darkfall_base_image: darkfall/server-base
+darkfall_base_tag: latest
+
+# Assembled flat into {{ darkfall_stage_dir }}/jars, because the classpath baked
+# into each node's <node>.xml VMOption names /opt/darkfall/jars/<file>.jar
+# directly. xstream-fix.jar is deliberately absent: it is a 1.2.2-era patch whose
+# stale JVM.class shadows xstream 1.4.21's complete one (NoSuchMethodError
+# isVersion), and mDF dropped it when moving to 1.4.21.
+darkfall_jars:
+  - Build/Server/dfserver.jar
+  - Build/ExternalDLL/xstream-1.4.21.jar
+  - Build/ExternalDLL/commons-collections-3.2.jar
+  - ThirdParty/ExternalDLL/recast-1.5.12.jar
+  - ThirdParty/ExternalDLL/detour-1.5.12.jar
+
+# Read-only and identical for every node. The per-node binary and config are
+# added by the compose template.
+darkfall_node_mounts:
+  - "{{ darkfall_stage_dir }}/jars:/opt/darkfall/jars:ro"
+  - "{{ darkfall_stage_dir }}/Build/Server/recast:/opt/darkfall/recast:ro"
+  - "{{ darkfall_stage_dir }}/docker/node-entrypoint.sh:/opt/darkfall/node-entrypoint.sh:ro"
+  - "{{ darkfall_dfdata_dir }}:/data/dfdata:ro"
+  - "{{ darkfall_dir }}/dfdata.sfai:/data/dfdata.sfai:ro"
+
+# Client-side trees. texture is 75G and .git is 85G of LFS objects, against a
+# 128G volume; what is left is the ~18G the nodes actually read.
+darkfall_dfdata_excludes:
+  - .git
+  - texture
+  - audio
+  - shaders-cache
+  - worldbuilder
+
+darkfall_postgres_image: postgres:17-alpine
+darkfall_watchdog_image: docker:cli
+
+darkfall_db_user: dfserver
+darkfall_db_password: dfserver
+darkfall_db_name: darkfall
+darkfall_db_port: 5432
+
+darkfall_client_port: 21000
+darkfall_server_port: 10001
+darkfall_admin_port: 1111
+
+# Must stay 172.28.0.0/24: assemble-configs.sh bakes 172.28.0.255 into every
+# node config as the UDP discovery broadcast address.
+darkfall_subnet: 172.28.0.0/24
+
+darkfall_startup_grace: 300
+
+# Read-only status page: is the cluster ready, or still booting? The frontend
+# accepts TCP well before the cluster reaches asRun, so "port is open" is not a
+# readiness signal and this reports the real per-node state instead.
+darkfall_status_image: python:3.13-alpine
+darkfall_status_port: 8080

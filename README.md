@@ -27,12 +27,20 @@ the service.
 | `edge` | Caddy reverse proxy, AdGuard Home for DNS, a dashboard, dynamic DNS |
 | `vpn` | OpenVPN Access Server, the way in to everything else |
 | `build` | Compiles Godot on 24 cores so a laptop does not have to |
+| `clips` | Fireshare, game clips shared by link, transcoding on the P400 |
+| `darkfall` | The Darkfall server cluster, plus the CI build rack on the mesh |
 | `social` | Postiz |
 | `backup` | Backrest over restic, nightly to local disk and offsite to B2 |
 | `files` | Samba shares over the ZFS pool |
 
-Admin interfaces stay on the LAN or behind the VPN. Only Plex gets a public
-name and a real certificate.
+Admin interfaces stay on the LAN or behind the VPN. Only Plex and Fireshare get
+a public name and a real certificate, because both exist to be watched from
+somewhere else.
+
+A Quadro P400 is passed through to `plex` and `clips` for NVENC. The driver
+lives on the host; the containers get a matching userspace copy and nothing
+else. `scripts/pve-nvidia-prep.sh` creates the device nodes at boot, which the
+driver otherwise only does on first use, too late for a container to inherit.
 
 ## Getting started
 

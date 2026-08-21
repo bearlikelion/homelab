@@ -1,0 +1,199 @@
+---
+# Forgejo Actions runner on the rack.
+#
+# Docker socket mode: the daemon that runs the game cluster also runs the job
+# containers. Forgejo lives behind the mesh, so the tailscale role has to have
+# run first or registration has nothing to talk to.
+
+- name: Check the control node has the rack sources
+  ansible.builtin.stat:
+    path: "{{ rack_source }}/{{ item }}"
+  register: rack_sources
+  delegate_to: localhost
+  become: false
+  changed_when: false
+  loop:
+    - rack/scripts
+    - rack/docker
+
+- name: Fail without the rack sources
+  ansible.builtin.fail:
+    msg: >-
+      {{ rack_source }}/{{ item.item }} is missing on the control node. Clone
+      the aws repo there, or point rack_source at it.
+  when: not item.stat.exists
+  loop: "{{ rack_sources.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Verify the darkfall mount is present
+  ansible.builtin.command: mountpoint -q {{ darkfall_dir }}
+  register: rack_mount
+  changed_when: false
+  failed_when: false
+
+# The warm repo cache alone is ~50G. On the 32G rootfs the first job fills the
+# container instead of failing.
+- name: Fail without the darkfall mount
+  ansible.builtin.fail:
+    msg: >-
+      {{ darkfall_dir }} is not a mount point. It comes from mount_points on the
+      darkfall module in live/prod/node/main.tf.
+  when: rack_mount.rc != 0
+
+- name: Read the mesh state
+  ansible.builtin.command: tailscale status --json --peers=false
+  register: rack_mesh
+  changed_when: false
+  failed_when: false
+
+- name: Fail when the node is not on the mesh
+  ansible.builtin.fail:
+    msg: >-
+      {{ forgejo_runner_url }} is only reachable over the mesh, and this node is
+      not on it. Run the tailscale role first.
+  when: >-
+    rack_mesh.stdout | trim | length == 0
+    or (rack_mesh.stdout | from_json).BackendState | default('') != 'Running'
+
+- name: Install rsync for the script push
+  ansible.builtin.apt:
+    name: rsync
+    state: present
+
+- name: Create the rack directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ rack_dir }}/runner"
+    - "{{ rack_dir }}/cache"
+    - "{{ rack_dir }}/scripts"
+    - "{{ rack_dir }}/runner-image"
+    - "{{ rack_builds_dir }}"
+
+# become would inject `sudo -u root rsync` and the container has no sudo. The
+# connection is already root.
+- name: Push the CI helper scripts
+  become: false
+  ansible.posix.synchronize:
+    src: "{{ rack_source }}/rack/scripts/"
+    dest: "{{ rack_dir }}/scripts/"
+    delete: true
+    rsync_opts:
+      - --chmod=F755
+  register: rack_scripts
+
+- name: Push the builder build context
+  become: false
+  ansible.posix.synchronize:
+    src: "{{ rack_source }}/rack/docker/"
+    dest: "{{ rack_dir }}/builder/"
+    delete: true
+  register: rack_builder_context
+
+# Both game targets out of one x86-64 container: the native Linux server with
+# clang and mold, and the Windows client cross-compiled with llvm-mingw. Rebuilt
+# only when the Dockerfile changes; a cold build unpacks ~500M of llvm-mingw.
+- name: Build the builder image
+  community.docker.docker_image_build:
+    name: "{{ forgejo_builder_name }}"
+    tag: "{{ forgejo_builder_tag }}"
+    path: "{{ rack_dir }}/builder"
+    dockerfile: Dockerfile.builder
+    rebuild: "{{ 'always' if rack_builder_context is changed else 'never' }}"
+
+- name: Render the runner Dockerfile
+  ansible.builtin.template:
+    src: Dockerfile.runner.j2
+    dest: "{{ rack_dir }}/runner-image/Dockerfile"
+    mode: "0644"
+  register: rack_runner_dockerfile
+
+- name: Build the runner image
+  community.docker.docker_image_build:
+    name: "{{ forgejo_runner_image }}"
+    tag: "{{ forgejo_runner_tag }}"
+    path: "{{ rack_dir }}/runner-image"
+    rebuild: "{{ 'always' if rack_runner_dockerfile is changed else 'never' }}"
+
+- name: Check whether the runner is already registered
+  ansible.builtin.stat:
+    path: "{{ rack_dir }}/runner/.runner"
+  register: rack_registered
+
+- name: Fail without a registration token
+  ansible.builtin.fail:
+    msg: >-
+      {{ forgejo_runner_name }} is not registered and forgejo_runner_token is
+      empty. Mint one with `scripts/runner-token.sh` in the aws repo, then
+      re-run with -e forgejo_runner_token=...
+  when:
+    - not rack_registered.stat.exists
+    - forgejo_runner_token | length == 0
+
+# Registration is what writes .runner, and the token is consumed doing it. The
+# stock image is enough here; only the daemon needs the derived one.
+- name: Register the runner
+  ansible.builtin.command:
+    argv:
+      - docker
+      - run
+      - --rm
+      - --user
+      - "0:0"
+      - --volume
+      - "{{ rack_dir }}/runner:/data"
+      - "{{ forgejo_runner_base_image }}"
+      - forgejo-runner
+      - register
+      - --no-interactive
+      - --instance
+      - "{{ forgejo_runner_url }}"
+      - --token
+      - "{{ forgejo_runner_token }}"
+      - --name
+      - "{{ forgejo_runner_name }}"
+      - --labels
+      - "{{ forgejo_runner_labels | join(',') }}"
+  when: not rack_registered.stat.exists
+  no_log: true
+
+- name: Render the runner config
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: "{{ rack_dir }}/runner/config.yaml"
+    mode: "0644"
+  register: rack_config
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ rack_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: rack_compose
+
+- name: Start the runner
+  community.docker.docker_compose_v2:
+    project_src: "{{ rack_dir }}"
+    state: present
+    pull: missing
+  register: rack_stack
+
+- name: Restart the runner when its config or scripts changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ rack_dir }}"
+    state: restarted
+  when:
+    - not rack_stack.changed
+    - rack_config is changed or rack_scripts is changed
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Runner {{ forgejo_runner_name }} registered at {{ forgejo_runner_url }}."
+      - "Labels: {{ forgejo_runner_labels | join(', ') }}."
+      - "Verify the builder image with {{ rack_dir }}/scripts/verify-builder.sh."
+      - "Builds land in {{ rack_builds_dir }}/<branch>/<sha>/; prune with scripts/prune-builds.sh from cron."
+      - "Workflows live in the aws repo under rack/workflows and install into OGDarkfall as .forgejo/workflows."

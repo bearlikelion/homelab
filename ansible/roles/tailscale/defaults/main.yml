@@ -1,0 +1,28 @@
+---
+# The stock Tailscale client pointed at our own headscale rather than
+# Tailscale's control plane. See docs/vpn.md in the aws repo.
+
+tailscale_login_server: https://mesh.odin.projectgamephoenix.com
+
+tailscale_hostname: "{{ inventory_hostname }}"
+
+# Single-use and short-lived, so it is passed at deploy time rather than kept in
+# sops. Mint one on the workstation with the aws repo's
+# `scripts/mesh-key.sh 24h tag:rack,tag:ci`, then:
+#   ansible-playbook site.yml -e tailscale_auth_key=...
+# Only read when the node is not already on the mesh.
+tailscale_auth_key: ""
+
+# The rack advertises the LAN behind it so a mesh peer reaches the game server
+# and the build artifacts directly. An admin still has to approve the route once
+# with `headscale routes enable`; advertising it here does nothing on its own.
+tailscale_advertise_routes:
+  - 192.168.1.0/24
+
+tailscale_accept_routes: true
+
+# headscale serves the internal names, and the runner cannot register without
+# resolving code.odin.projectgamephoenix.com.
+tailscale_accept_dns: true
+
+tailscale_up_extra_args: []
