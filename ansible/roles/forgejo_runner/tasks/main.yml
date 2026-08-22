@@ -189,11 +189,28 @@
     - not rack_stack.changed
     - rack_config is changed or rack_scripts is changed
 
+- name: Create the directory the prune job logs into
+  ansible.builtin.file:
+    path: "{{ darkfall_log_dir }}"
+    state: directory
+    mode: "0755"
+
+# Keeps the newest rack_prune_keep builds per branch, and never the one `latest`
+# points at. The script is pushed above, so this follows it.
+- name: Prune old builds nightly
+  ansible.builtin.cron:
+    name: prune-builds
+    minute: "0"
+    hour: "{{ rack_prune_hour }}"
+    job: >-
+      KEEP={{ rack_prune_keep }} {{ rack_dir }}/scripts/prune-builds.sh
+      >> {{ darkfall_log_dir }}/prune.log 2>&1
+
 - name: Where to go next
   ansible.builtin.debug:
     msg:
       - "Runner {{ forgejo_runner_name }} registered at {{ forgejo_runner_url }}."
       - "Labels: {{ forgejo_runner_labels | join(', ') }}."
       - "Verify the builder image with {{ rack_dir }}/scripts/verify-builder.sh."
-      - "Builds land in {{ rack_builds_dir }}/<branch>/<sha>/; prune with scripts/prune-builds.sh from cron."
+      - "Builds land in {{ rack_builds_dir }}/<branch>/<sha>/; the nightly cron keeps {{ rack_prune_keep }} per branch."
       - "Workflows live in the odin repo under rack/workflows and install into OGDarkfall as .forgejo/workflows."

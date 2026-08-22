@@ -46,6 +46,12 @@ rack_source: /mnt/SSD/Darkfall/src/odin
 rack_dir: "{{ darkfall_dir }}/ci"
 rack_builds_dir: "{{ darkfall_dir }}/builds"
 
+# Nightly prune of the builds volume. 128G, and a client build is multi-GB, so
+# unattended CI fills it in weeks. Docker's own layer and BuildKit caches are
+# deliberately left alone: they are what keeps a rebuild from being cold.
+rack_prune_keep: 5
+rack_prune_hour: 4
+
 # A job container may bind only what is listed here, and the default is nothing.
 # The build workflows mount all three.
 forgejo_runner_valid_volumes:
