@@ -18,7 +18,7 @@ forgejo_runner_labels:
   - "rack-x64:docker://{{ forgejo_builder_image }}"
   - "rack-host:host"
 
-forgejo_runner_version: "6.3.1"
+forgejo_runner_version: "13.0.0"
 forgejo_runner_base_image: "code.forgejo.org/forgejo/runner:{{ forgejo_runner_version }}"
 
 # The stock runner image is bare Alpine: no docker client and no rsync, both of
