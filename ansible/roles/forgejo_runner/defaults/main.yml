@@ -1,13 +1,13 @@
 ---
 # Forgejo Actions runner. The rack is x86-64 and the AWS node holding Forgejo is
-# arm64, so this is where the game actually compiles. See docs/ci.md in the aws
+# arm64, so this is where the game actually compiles. See docs/ci.md in the odin
 # repo for the full design.
 
 forgejo_runner_url: https://code.odin.projectgamephoenix.com
 forgejo_runner_name: "{{ inventory_hostname }}"
 
 # Single-use: registering consumes it, so it is passed at deploy time rather
-# than kept in sops. Mint one with the aws repo's `scripts/runner-token.sh`:
+# than kept in sops. Mint one with the odin repo's `scripts/runner-token.sh`:
 #   ansible-playbook site.yml -e forgejo_runner_token=...
 # Only read on the first run; after that the .runner file is the credential.
 forgejo_runner_token: ""
@@ -36,10 +36,10 @@ forgejo_builder_image: "{{ forgejo_builder_name }}:{{ forgejo_builder_tag }}"
 forgejo_runner_capacity: 1
 forgejo_runner_job_timeout: 3h
 
-# Control-node checkout of the aws repo. The helper scripts and the builder
+# Control-node checkout of the odin repo. The helper scripts and the builder
 # image are pushed from it rather than duplicated here, the same way the
 # darkfall role ships build artifacts from OGDarkfall.
-rack_source: /mnt/SSD/Darkfall/src/aws
+rack_source: /mnt/SSD/Darkfall/src/odin
 
 # On the 128G bind mount, not the 32G rootfs: the warm repo cache is ~50G of
 # submodule history and a client build is multi-gigabyte.

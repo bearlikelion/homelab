@@ -20,7 +20,7 @@
   ansible.builtin.fail:
     msg: >-
       {{ rack_source }}/{{ item.item }} is missing on the control node. Clone
-      the aws repo there, or point rack_source at it.
+      the odin repo there, or point rack_source at it.
   when: not item.stat.exists
   loop: "{{ rack_sources.results }}"
   loop_control:
@@ -127,7 +127,7 @@
   ansible.builtin.fail:
     msg: >-
       {{ forgejo_runner_name }} is not registered and forgejo_runner_token is
-      empty. Mint one with `scripts/runner-token.sh` in the aws repo, then
+      empty. Mint one with `scripts/runner-token.sh` in the odin repo, then
       re-run with -e forgejo_runner_token=...
   when:
     - not rack_registered.stat.exists
@@ -196,4 +196,4 @@
       - "Labels: {{ forgejo_runner_labels | join(', ') }}."
       - "Verify the builder image with {{ rack_dir }}/scripts/verify-builder.sh."
       - "Builds land in {{ rack_builds_dir }}/<branch>/<sha>/; prune with scripts/prune-builds.sh from cron."
-      - "Workflows live in the aws repo under rack/workflows and install into OGDarkfall as .forgejo/workflows."
+      - "Workflows live in the odin repo under rack/workflows and install into OGDarkfall as .forgejo/workflows."

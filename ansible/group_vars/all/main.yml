@@ -221,6 +221,7 @@ files_ip: 192.168.1.190
 
 samba_users:
   - mark
+  - carina
 
 # Set true only after verifying the container can traverse .zfs/snapshot; an
 # unprivileged LXC often cannot, and smbd then serves an empty version list.

@@ -4,7 +4,10 @@
 # runs inside this container rather than in a job container, and
 # deploy-internal.yml shells out to docker compose and rsync, so both have to be
 # here and the daemon needs root to reach the host docker socket at all.
+#
+# buildx too: the host daemon speaks BuildKit, but the builder is a client-side
+# plugin, so a job that builds an image needs it in here, not on the host.
 FROM {{ forgejo_runner_base_image }}
 
 USER root
-RUN apk add --no-cache docker-cli docker-cli-compose rsync
+RUN apk add --no-cache docker-cli docker-cli-buildx docker-cli-compose rsync
