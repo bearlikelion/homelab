@@ -1,0 +1,105 @@
+---
+# Forgejo, reached as code.{{ internal_domain }} through Caddy on edge.
+#
+# The admin account is created from the CLI rather than the first-run installer,
+# so a rebuilt container comes up usable without anyone clicking through a web
+# form. Its password is generated on the box and never leaves it.
+
+- name: Create the stack directory
+  ansible.builtin.file:
+    path: "{{ code_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Create the data directory
+  ansible.builtin.file:
+    path: "{{ forgejo_data_dir }}"
+    state: directory
+    owner: "{{ forgejo_uid }}"
+    group: "{{ forgejo_gid }}"
+    mode: "0750"
+
+# Generated once and kept, because regenerating it would not change the account
+# that already exists in the database and the two would drift apart.
+- name: Generate the admin password
+  ansible.builtin.shell: |
+    umask 077
+    openssl rand -base64 24 > {{ code_dir }}/admin-password
+  args:
+    creates: "{{ code_dir }}/admin-password"
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ code_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: forgejo_compose
+
+- name: Start Forgejo
+  community.docker.docker_compose_v2:
+    project_src: "{{ code_dir }}"
+    state: present
+    pull: missing
+
+- name: Restart when the compose file changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ code_dir }}"
+    state: restarted
+  when: forgejo_compose.changed
+
+# First boot creates the schema, which is slow on a cold container.
+- name: Wait for the web interface
+  ansible.builtin.wait_for:
+    port: "{{ forgejo_port }}"
+    host: 127.0.0.1
+    timeout: 300
+
+- name: Read the admin password
+  ansible.builtin.slurp:
+    src: "{{ code_dir }}/admin-password"
+  register: forgejo_admin_password
+  no_log: true
+
+- name: List the existing users
+  ansible.builtin.command:
+    argv: [docker, exec, --user, git, forgejo, forgejo, admin, user, list]
+  register: forgejo_users
+  changed_when: false
+  retries: 5
+  delay: 5
+  until: forgejo_users.rc == 0
+
+# `user create` errors out when the name is taken, so the list above is what
+# makes this re-runnable.
+- name: Create the admin user
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - git
+      - forgejo
+      - forgejo
+      - admin
+      - user
+      - create
+      - --admin
+      - --username
+      - "{{ forgejo_admin_user }}"
+      - --password
+      - "{{ forgejo_admin_password.content | b64decode | trim }}"
+      - --email
+      - "{{ forgejo_admin_email }}"
+      - --must-change-password=false
+  when: >-
+    forgejo_admin_user not in (forgejo_users.stdout_lines[1:]
+      | map('regex_replace', '^\\S+\\s+(\\S+).*$', '\\1') | list)
+  no_log: true
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Forgejo at {{ internal_domain_scheme }}://code.{{ internal_domain }}"
+      - "Sign in as {{ forgejo_admin_user }}; the password is in {{ code_dir }}/admin-password on this box."
+      - "Clone over SSH as ssh://git@git.{{ internal_domain }}:{{ forgejo_ssh_port }}/{{ forgejo_admin_user }}/<repo>.git"
+      - "Add your SSH public key under Settings > SSH Keys before the first push."

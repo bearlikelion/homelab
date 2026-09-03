@@ -16,6 +16,51 @@
   community.general.timezone:
     name: "{{ timezone }}"
 
+# Every container here is an LXC; pelican is the one full machine. Without the
+# agent PVE cannot ask it to shut down cleanly and reports no address for it.
+- name: Set up the QEMU guest agent
+  when: ansible_virtualization_type == 'kvm'
+  block:
+    - name: Install the guest agent
+      ansible.builtin.apt:
+        name: qemu-guest-agent
+        state: present
+
+    - name: Enable and start the guest agent
+      ansible.builtin.systemd:
+        name: qemu-guest-agent
+        enabled: true
+        state: started
+
+    # The cloud image runs systemd-resolved, so /etc/resolv.conf is the
+    # 127.0.0.53 stub. Docker refuses a loopback resolver and silently falls
+    # back to public DNS, which knows nothing about {{ internal_domain }}, so a
+    # container here cannot reach anything by its internal name. Every LXC on
+    # this node has a plain resolv.conf and none of them has the problem;
+    # handing this guest the same thing is what makes them behave alike.
+    #
+    # AdGuard first, deliberately: the router does NOT forward
+    # {{ internal_domain }} to it, so it is the only resolver that answers for
+    # the internal names. The gateway stays as the fallback for everything else.
+    - name: Stop systemd-resolved managing resolv.conf
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        enabled: false
+        state: stopped
+        masked: true
+
+    - name: Replace the stub resolv.conf
+      ansible.builtin.copy:
+        content: |
+          # Managed by the common role. AdGuard first: it is the only resolver
+          # that answers for {{ internal_domain }}.
+          nameserver {{ edge_ip }}
+          nameserver {{ dns_fallback }}
+          search {{ internal_domain }}
+        dest: /etc/resolv.conf
+        follow: false
+        mode: "0644"
+
 # The media group and user must match the host's IDs exactly. The container's
 # lxc.idmap maps this one ID straight through, so files keep consistent
 # ownership across the host boundary.

@@ -1,0 +1,142 @@
+---
+# Forgejo Actions runner for code.{{ internal_domain }}.
+#
+# Registration is the offline flow: a 40 character hex secret is generated here,
+# handed to Forgejo with `forgejo-cli actions register`, and Forgejo answers with
+# the UUID that pairs with it. Both ends then hold the same credential, so this
+# converges on re-runs instead of needing a fresh single-use token every time.
+
+- name: Check the control node has the internal CA
+  ansible.builtin.stat:
+    path: "{{ build_runner_ca_cert }}"
+  register: build_runner_ca
+  delegate_to: localhost
+  become: false
+  changed_when: false
+
+# Without it the runner cannot verify Caddy's certificate and registration fails
+# on the first poll.
+- name: Fail without the internal CA
+  ansible.builtin.fail:
+    msg: >-
+      {{ build_runner_ca_cert }} is missing. The edge role writes it out; deploy
+      edge first, or copy the root from {{ edge_dir }}/ca on that box.
+  when: not build_runner_ca.stat.exists
+
+- name: Install the internal CA
+  ansible.builtin.copy:
+    src: "{{ build_runner_ca_cert }}"
+    dest: "{{ build_runner_ca_dest }}"
+    mode: "0644"
+  register: build_runner_ca_installed
+
+- name: Rebuild the trust store
+  ansible.builtin.command: update-ca-certificates
+  when: build_runner_ca_installed.changed
+
+- name: Pin the internal names
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '\s{{ item.split(":")[0] | regex_escape }}$'
+    line: "{{ item.split(':')[1] }} {{ item.split(':')[0] }}"
+  loop: "{{ build_runner_host_aliases }}"
+
+- name: Create the runner directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ build_runner_dir }}/runner"
+    - "{{ build_runner_dir }}/cache"
+
+# Kept rather than regenerated: the first 16 characters are the runner's
+# identity on the Forgejo side, so a new secret would leave a dead runner behind.
+- name: Generate the registration secret
+  ansible.builtin.shell: |
+    umask 077
+    openssl rand -hex 20 > {{ build_runner_dir }}/secret
+  args:
+    creates: "{{ build_runner_dir }}/secret"
+
+- name: Read the registration secret
+  ansible.builtin.slurp:
+    src: "{{ build_runner_dir }}/secret"
+  register: build_runner_secret_file
+  no_log: true
+
+- name: Keep the secret to hand
+  ansible.builtin.set_fact:
+    build_runner_secret: "{{ build_runner_secret_file.content | b64decode | trim }}"
+  no_log: true
+
+# Idempotent by design: re-running with the same secret returns the same UUID
+# and rotates nothing.
+- name: Register the runner with Forgejo
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - git
+      - forgejo
+      - forgejo
+      - forgejo-cli
+      - actions
+      - register
+      - --name
+      - "{{ build_runner_name }}"
+      - --secret
+      - "{{ build_runner_secret }}"
+  delegate_to: "{{ build_runner_forgejo_host }}"
+  register: build_runner_registration
+  changed_when: false
+  no_log: true
+
+- name: Keep the runner UUID to hand
+  ansible.builtin.set_fact:
+    build_runner_uuid: "{{ build_runner_registration.stdout | trim }}"
+
+- name: Render the runner config
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: "{{ build_runner_dir }}/runner/config.yaml"
+    mode: "0600"
+  register: build_runner_config
+  no_log: true
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ build_runner_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: build_runner_compose
+
+- name: Start the runner
+  community.docker.docker_compose_v2:
+    project_src: "{{ build_runner_dir }}"
+    state: present
+    pull: missing
+  register: build_runner_stack
+
+- name: Restart the runner when its config changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ build_runner_dir }}"
+    state: restarted
+  when:
+    - not build_runner_stack.changed
+    - build_runner_config is changed or build_runner_compose is changed
+
+# The job image is pulled by the daemon on first use, which would otherwise put
+# a multi-minute download in front of the first workflow anyone runs.
+- name: Pre-pull the job image
+  community.docker.docker_image_pull:
+    name: "{{ build_runner_job_image }}"
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Runner {{ build_runner_name }} registered at {{ build_runner_url }}."
+      - "Labels: {{ build_runner_labels | join(', ') }}."
+      - "Confirm it is online under Site Administration > Actions > Runners."
+      - "Workflows go in .forgejo/workflows/ and want runs-on: ubuntu-latest."

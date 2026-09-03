@@ -82,14 +82,41 @@
     - tailscale
     - forgejo_runner
 
+# Forgejo, the git server. Deliberately not on the build box: the runner there
+# drives the host Docker daemon, and the repositories are the one thing on this
+# host that cannot be regenerated.
+- name: Deploy Forgejo
+  hosts: code
+  become: true
+  roles:
+    - forgejo
+
+- name: Deploy Penpot
+  hosts: design
+  become: true
+  roles:
+    - penpot
+
+# The runner registers against the play above, so that one has to have run.
 - name: Deploy the build box
   hosts: build
   become: true
   roles:
     - build
+    - role: build_runner
+      tags: runner
 
 - name: Deploy the file shares
   hosts: files
   become: true
   roles:
     - samba
+
+# The Pelican panel and its Wings daemon. The only KVM guest here: Wings sets
+# cgroup and memory limits on the containers it launches, which an unprivileged
+# LXC is not permitted to do.
+- name: Deploy the game server panel
+  hosts: pelican
+  become: true
+  roles:
+    - pelican

@@ -1,0 +1,61 @@
+# Rendered by the build_runner role. `forgejo-runner generate-config` prints the
+# annotated full version.
+log:
+  level: info
+  job_level: info
+
+runner:
+  file: .runner
+  capacity: {{ build_runner_capacity }}
+  envs: {}
+  env_file: .env
+  timeout: {{ build_runner_job_timeout }}
+  shutdown_timeout: {{ build_runner_job_timeout }}
+  insecure: false
+  fetch_timeout: 30s
+  fetch_interval: 2s
+  report_interval: 1s
+  # Declared here rather than in a .runner file: registration is done from the
+  # Forgejo side with a shared secret, so no .runner is ever written.
+  labels:
+{% for label in build_runner_labels %}
+    - "{{ label }}"
+{% endfor %}
+
+cache:
+  enabled: true
+  dir: /cache
+  # Left empty so the runner detects the address a job container can reach it
+  # on; a job runs on a network created per job, so the answer changes.
+  host: ""
+  port: 0
+  proxy_port: 0
+
+container:
+  # Empty creates a network per job.
+  network: ""
+  enable_ipv6: false
+  privileged: false
+  # One line on purpose: the runner splits this on whitespace, so a folded
+  # scalar that kept a newline would hand it a broken argument.
+  options: "--volume /etc/ssl/certs:/etc/ssl/certs:ro{% for alias in build_runner_host_aliases %} --add-host {{ alias }}{% endfor %}"
+  workdir_parent:
+  valid_volumes:
+{% for volume in build_runner_valid_volumes %}
+    - {{ volume }}
+{% endfor %}
+  # "-" finds the daemon without mounting its socket into the job container. A
+  # job that could reach the socket would be root on this box.
+  docker_host: "-"
+  force_pull: false
+  force_rebuild: false
+
+host:
+  workdir_parent:
+
+server:
+  connections:
+    home:
+      url: {{ build_runner_url }}
+      uuid: {{ build_runner_uuid }}
+      token: {{ build_runner_secret }}

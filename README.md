@@ -9,8 +9,9 @@ this repository.
 
 Two layers, kept apart on purpose:
 
-- **OpenTofu** (`live/`, `modules/`) creates the LXC containers on Proxmox:
-  cores, memory, disks, bind mounts, network. It owns the boxes.
+- **OpenTofu** (`live/`, `modules/`) creates the guests on Proxmox: cores, memory, disks, bind mounts, network.
+  It owns the boxes.
+  Almost all of them are LXC containers; `pelican` is a full KVM machine, because the game server daemon it runs is unsupported in one.
 - **Ansible** (`ansible/`) installs Docker and renders a Compose file into each
   one. It owns what runs inside them.
 
@@ -20,15 +21,18 @@ the service.
 
 ## What runs where
 
-| Container | What it does |
+| Guest | What it does |
 |---|---|
 | `media` | Radarr, Sonarr, Prowlarr, qBittorrent, Tautulli, Maintainerr |
 | `plex` | Plex Media Server, the only service published to the internet |
 | `edge` | Caddy reverse proxy, AdGuard Home for DNS, a dashboard, dynamic DNS |
 | `vpn` | OpenVPN Access Server, the way in to everything else |
-| `build` | Compiles Godot on 24 cores so a laptop does not have to |
+| `build` | Compiles Godot on 24 cores so a laptop does not have to, and runs the Forgejo Actions runner |
+| `code` | Forgejo, the git server and CI backend behind `code.arneman.home` |
+| `design` | Penpot, the internal design and prototyping workspace |
 | `clips` | Fireshare, game clips shared by link, transcoding on the P400 |
 | `darkfall` | The Darkfall server cluster, plus the CI build rack on the mesh |
+| `pelican` | Pelican panel and Wings, SteamCMD game servers in Docker. The one VM |
 | `social` | Postiz |
 | `backup` | Backrest over restic, nightly to local disk and offsite to B2 |
 | `files` | Samba shares over the ZFS pool |
@@ -67,3 +71,6 @@ the command line.
 - [docs/backups.md](docs/backups.md) covers what is backed up, what is not, and
   how to restore after losing the host entirely.
 - [docs/build.md](docs/build.md) covers the build box and remote compiles.
+- [docs/design.md](docs/design.md) covers Penpot, first sign-in, registration,
+  MCP access, upgrades, and recovery.
+- [docs/games.md](docs/games.md) covers the game server panel: adding a server, which ports to forward, and why that one guest is a VM.

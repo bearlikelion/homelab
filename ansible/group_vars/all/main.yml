@@ -25,6 +25,15 @@ ddns_image: favonia/cloudflare-ddns:1.15.1
 adguard_image: adguard/adguardhome:v0.107.68
 homepage_image: ghcr.io/gethomepage/homepage:v1.13.2
 backrest_image: garethgeorge/backrest:v1.14.1
+forgejo_image: codeberg.org/forgejo/forgejo:16.0.3
+panel_image: ghcr.io/pelican/panel:v1.0.0-beta38
+wings_image: ghcr.io/pelican/wings:v1.0.0-beta29
+penpot_frontend_image: penpotapp/frontend:2.17.2
+penpot_backend_image: penpotapp/backend:2.17.2
+penpot_exporter_image: penpotapp/exporter:2.17.2
+penpot_mcp_image: penpotapp/mcp:2.17.2
+penpot_postgres_image: postgres:15
+penpot_valkey_image: valkey/valkey:8.1
 caddy_version: "2.11.4"
 
 # --- Paths ------------------------------------------------------------------
@@ -56,6 +65,13 @@ build_ip: 192.168.1.150
 social_ip: 192.168.1.160
 backup_ip: 192.168.1.170
 clips_ip: 192.168.1.200
+code_ip: 192.168.1.210
+pelican_ip: 192.168.1.220
+design_ip: 192.168.1.230
+
+# Second resolver for guests that manage their own resolv.conf. AdGuard on edge
+# is always first; this is only what answers when it is down.
+dns_fallback: 192.168.1.1
 
 # Internal names, resolved by AdGuard and reachable only on the LAN or over the
 # VPN. Purpose-based rather than app-based: what it does, not what runs it.
@@ -102,6 +118,22 @@ internal_services:
     upstream: "{{ clips_ip }}:{{ review_port }}"
   - name: backup
     upstream: "{{ backup_ip }}:{{ backrest_port }}"
+  # Only the web UI. Git over SSH is not HTTP and cannot come through Caddy, so
+  # it gets its own name in internal_dns_overrides below.
+  - name: code
+    upstream: "{{ code_ip }}:{{ forgejo_port }}"
+  # Penpot's frontend proxies its own API, exporter and MCP routes, so Caddy
+  # only needs one upstream for the whole application.
+  - name: design
+    upstream: "{{ design_ip }}:{{ penpot_port }}"
+  # The panel. Wings gets a name of its own because the browser opens the
+  # console websocket straight to the daemon, and an https page is not allowed
+  # to open a plain-ws one; fronting the daemon here makes both the same origin
+  # scheme. Wings itself still serves plain http on 8080.
+  - name: games
+    upstream: "{{ pelican_ip }}:{{ pelican_panel_port }}"
+  - name: wings
+    upstream: "{{ pelican_ip }}:{{ wings_port }}"
   # Proxmox serves https with its own self-signed cert, so Caddy has to dial
   # https and skip verification. pve is an alias for the same host.
   - name: proxmox
@@ -115,6 +147,16 @@ internal_services:
   - name: cockpit
     upstream: "{{ pve_ip }}:9090"
     upstream_tls: true
+
+# Names that answer with a container directly instead of the proxy. Everything
+# else in internal_services resolves to Caddy, which only speaks HTTP.
+internal_dns_overrides:
+  - name: git
+    answer: "{{ code_ip }}"
+  # Pelican's file manager hands out an SFTP address. Not HTTP, so it cannot
+  # come through Caddy either.
+  - name: sftp
+    answer: "{{ pelican_ip }}"
 
 # Public names with real certificates. Deliberately minimal: only Plex is
 # exposed. Admin interfaces stay internal, reachable over the VPN instead.
@@ -212,6 +254,46 @@ build_root: /build
 # 24 cores allocated, 22 used, leaving the box responsive during a build.
 godot_build_jobs: 22
 ccache_max_size: 50G
+
+# --- Code (Forgejo) ---------------------------------------------------------
+# Web UI at code.{{ internal_domain }} through Caddy, git over SSH at
+# git.{{ internal_domain }} straight to the container.
+
+code_dir: /opt/code
+
+forgejo_port: 3000
+
+# 22 inside the container belongs to the image's sshd; 22 on the container
+# belongs to the LXC's own, which Ansible connects over.
+forgejo_ssh_port: 2222
+
+forgejo_admin_user: mark
+
+# One account, created by the role on first deploy. Anyone else is invited from
+# the admin UI.
+forgejo_disable_registration: true
+
+# --- Design (Penpot) --------------------------------------------------------
+# Internal-only at design.{{ internal_domain }}. The root filesystem holds both
+# persistent volumes, so the normal vzdump archive captures the database and
+# uploaded assets together.
+
+penpot_dir: /opt/penpot
+penpot_port: 9001
+
+# Leave true for the first deploy, create the accounts, then flip it and re-run
+# the playbook. Password login remains available for existing accounts.
+penpot_registration_enabled: true
+
+# No SMTP provider is configured. Verification is disabled and invitation
+# tokens are logged by the backend so a small internal team can still onboard.
+penpot_flags:
+  - disable-email-verification
+  - enable-log-invitation-tokens
+  - enable-prepl-server
+  - enable-mcp
+
+penpot_telemetry_enabled: false
 
 # --- Files (Samba) ----------------------------------------------------------
 # tank/backup is not shared. A desktop that can write to the restic repositories
@@ -405,3 +487,30 @@ darkfall_startup_grace: 300
 # readiness signal and this reports the real per-node state instead.
 darkfall_status_image: python:3.13-alpine
 darkfall_status_port: 8080
+
+# --- Pelican (game server panel) --------------------------------------------
+# Panel at games.{{ internal_domain }}, daemon at wings.{{ internal_domain }},
+# both through Caddy. The game ports themselves are published by the containers
+# Wings creates and are the only thing here forwarded on the router.
+
+pelican_dir: /opt/pelican
+
+# Behind Caddy, so the panel's own Caddy never terminates TLS and there is no
+# reason for it to hold 80 or 443.
+pelican_panel_port: 8000
+
+wings_port: 8080
+wings_sftp_port: 2022
+
+pelican_admin_user: mark
+
+# Ceilings the panel hands out from, not reservations. 12G of the machine's 16G
+# and 256G of the 300G volume, so a full node still leaves the box able to boot.
+pelican_node_memory: 12288
+pelican_node_disk: 262144
+
+# The range to forward on the router and to add as allocations on the node.
+# 27015 upward is the Source engine convention and what most SteamCMD eggs
+# default to.
+pelican_game_port_min: 27015
+pelican_game_port_max: 27100

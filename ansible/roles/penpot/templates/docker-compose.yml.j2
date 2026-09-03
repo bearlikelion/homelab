@@ -1,0 +1,97 @@
+# Rendered by the penpot role from the upstream 2.17 Compose topology.
+services:
+  penpot-frontend:
+    image: {{ penpot_frontend_image }}
+    container_name: penpot-frontend
+    restart: unless-stopped
+    depends_on:
+      - penpot-backend
+      - penpot-exporter
+      - penpot-mcp
+    environment:
+      PENPOT_FLAGS: "{{ penpot_flags | join(' ') }}{% if not penpot_registration_enabled %} disable-registration{% endif %}"
+      PENPOT_PUBLIC_URI: "{{ internal_domain_scheme }}://design.{{ internal_domain }}"
+      PENPOT_HTTP_SERVER_MAX_BODY_SIZE: "367001600"
+    volumes:
+      - penpot_assets:/opt/data/assets
+    ports:
+      - "{{ penpot_port }}:8080"
+
+  penpot-backend:
+    image: {{ penpot_backend_image }}
+    container_name: penpot-backend
+    restart: unless-stopped
+    depends_on:
+      penpot-postgres:
+        condition: service_healthy
+      penpot-valkey:
+        condition: service_healthy
+    environment:
+      PENPOT_FLAGS: "{{ penpot_flags | join(' ') }}{% if not penpot_registration_enabled %} disable-registration{% endif %}"
+      PENPOT_PUBLIC_URI: "{{ internal_domain_scheme }}://design.{{ internal_domain }}"
+      PENPOT_HTTP_SERVER_MAX_BODY_SIZE: "367001600"
+      PENPOT_SECRET_KEY: "${PENPOT_SECRET_KEY}"
+      PENPOT_DATABASE_URI: postgresql://penpot-postgres/penpot
+      PENPOT_DATABASE_USERNAME: penpot
+      PENPOT_DATABASE_PASSWORD: "${PENPOT_DB_PASSWORD}"
+      PENPOT_REDIS_URI: redis://penpot-valkey/0
+      PENPOT_OBJECTS_STORAGE_BACKEND: fs
+      PENPOT_OBJECTS_STORAGE_FS_DIRECTORY: /opt/data/assets
+      PENPOT_TELEMETRY_ENABLED: "{{ penpot_telemetry_enabled | lower }}"
+      PENPOT_TELEMETRY_REFERER: compose
+    volumes:
+      - penpot_assets:/opt/data/assets
+
+  penpot-mcp:
+    image: {{ penpot_mcp_image }}
+    container_name: penpot-mcp
+    restart: unless-stopped
+
+  penpot-exporter:
+    image: {{ penpot_exporter_image }}
+    container_name: penpot-exporter
+    restart: unless-stopped
+    depends_on:
+      penpot-valkey:
+        condition: service_healthy
+    environment:
+      PENPOT_SECRET_KEY: "${PENPOT_SECRET_KEY}"
+      PENPOT_PUBLIC_URI: "{{ internal_domain_scheme }}://design.{{ internal_domain }}"
+      PENPOT_INTERNAL_URI: http://penpot-frontend:8080
+      PENPOT_REDIS_URI: redis://penpot-valkey/0
+
+  penpot-postgres:
+    image: {{ penpot_postgres_image }}
+    container_name: penpot-postgres
+    restart: unless-stopped
+    stop_signal: SIGINT
+    environment:
+      POSTGRES_INITDB_ARGS: --data-checksums
+      POSTGRES_DB: penpot
+      POSTGRES_USER: penpot
+      POSTGRES_PASSWORD: "${PENPOT_DB_PASSWORD}"
+    volumes:
+      - penpot_postgres_v15:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U penpot"]
+      interval: 2s
+      timeout: 10s
+      retries: 5
+      start_period: 2s
+
+  penpot-valkey:
+    image: {{ penpot_valkey_image }}
+    container_name: penpot-valkey
+    restart: unless-stopped
+    environment:
+      VALKEY_EXTRA_FLAGS: --maxmemory 128mb --maxmemory-policy volatile-lfu
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+
+volumes:
+  penpot_postgres_v15:
+  penpot_assets:

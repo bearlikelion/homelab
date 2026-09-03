@@ -80,6 +80,11 @@
           answer: {{ edge_ip }}
           enabled: true
       {% endfor %}
+      {% for svc in internal_dns_overrides %}
+        - domain: {{ svc.name }}.{{ internal_domain }}
+          answer: {{ svc.answer }}
+          enabled: true
+      {% endfor %}
         - domain: ca.{{ internal_domain }}
           answer: {{ edge_ip }}
           enabled: true

@@ -1,0 +1,51 @@
+---
+# Overridable in group_vars. Kept here so the role stands on its own.
+
+panel_image: ghcr.io/pelican/panel:v1.0.0-beta38
+wings_image: ghcr.io/pelican/wings:v1.0.0-beta29
+
+pelican_dir: /opt/pelican
+pelican_data_dir: "{{ pelican_dir }}/data"
+pelican_logs_dir: "{{ pelican_dir }}/logs"
+pelican_plugins_dir: "{{ pelican_dir }}/plugins"
+
+# The second disk. Wings passes host paths straight to the Docker daemon when
+# it creates a game server, so this path has to mean the same thing on the VM
+# and inside the wings container.
+pelican_volume_root: /var/lib/pelican
+
+# Named by the disk's interface, scsi1 in the extra_disks block in
+# live/prod/node/main.tf. Not by its serial: udev builds ID_SERIAL from the
+# drive name and leaves the serial in ID_SCSI_SERIAL, which no by-id link and no
+# Ansible fact reads. /dev/sdb is what this avoids, being enumeration order.
+pelican_volume_device: /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1
+
+# Behind Caddy on edge, so the panel's own Caddy only ever serves plain http.
+# alpine's www-data, baked into the panel image, which runs as it and expects
+# to own /pelican-data. The host side of every panel bind mount matches it.
+panel_uid: 82
+panel_gid: 82
+
+pelican_panel_port: 8000
+wings_port: 8080
+wings_sftp_port: 2022
+
+# The id wings chowns server files to. Matches upstream's default; it is not
+# the media user, because nothing outside this box reads these files.
+wings_uid: 988
+wings_gid: 988
+
+pelican_admin_user: mark
+pelican_admin_email: "{{ acme_email }}"
+
+pelican_node_name: pelican
+
+# Ceilings the panel enforces when a server is created. 0 means unlimited;
+# these are real numbers so one runaway server cannot take the box down.
+pelican_node_memory: 12288
+pelican_node_disk: 262144
+
+# Game server ports, published on this VM by the containers wings creates.
+# Forwarded on the router, which is the only thing here reachable from outside.
+pelican_game_port_min: 27015
+pelican_game_port_max: 27100

@@ -1,0 +1,61 @@
+---
+# Penpot, reached as design.{{ internal_domain }} through Caddy on edge.
+
+- name: Create the stack directory
+  ansible.builtin.file:
+    path: "{{ penpot_dir }}"
+    state: directory
+    mode: "0755"
+
+# Generated on the guest and retained across convergent deploys. Rotating the
+# secret key invalidates sessions; rotating the password without changing the
+# existing Postgres role locks the backend out of its database.
+- name: Generate Penpot secrets
+  ansible.builtin.shell: |
+    umask 077
+    {
+      printf 'PENPOT_SECRET_KEY='
+      openssl rand -base64 64 | tr -d '\n'
+      printf '\nPENPOT_DB_PASSWORD='
+      openssl rand -hex 24
+    } > {{ penpot_dir }}/.env
+  args:
+    creates: "{{ penpot_dir }}/.env"
+  no_log: true
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ penpot_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: penpot_compose
+
+- name: Start Penpot
+  community.docker.docker_compose_v2:
+    project_src: "{{ penpot_dir }}"
+    state: present
+    pull: missing
+
+- name: Restart when the compose file changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ penpot_dir }}"
+    state: restarted
+  when: penpot_compose.changed
+
+# The first start migrates PostgreSQL and warms the frontend before it listens.
+- name: Wait for the web interface
+  ansible.builtin.wait_for:
+    port: "{{ penpot_port }}"
+    host: 127.0.0.1
+    timeout: 600
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Penpot at {{ internal_domain_scheme }}://design.{{ internal_domain }}"
+      - >-
+        {% if penpot_registration_enabled %}Registration is open. Create the
+        initial accounts, then set penpot_registration_enabled: false and
+        re-run.{% else %}Registration is closed; existing accounts can still
+        sign in with their passwords.{% endif %}
+      - "Persistent database and asset volumes are included in this guest's vzdump backup."

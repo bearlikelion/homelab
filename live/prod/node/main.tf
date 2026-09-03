@@ -66,6 +66,18 @@ variable "template_file_id" {
   default = "local:vztmpl/debian-13-standard_13.6-1_amd64.tar.zst"
 }
 
+variable "cloud_image_url" {
+  description = "Uncompressed cloud image for the KVM guests. Pinned to a dated Debian build rather than latest/, so a rebuild produces the machine that was tested."
+  type        = string
+  default     = "https://cloud.debian.org/images/cloud/trixie/20260831-2587/debian-13-genericcloud-amd64-20260831-2587.qcow2"
+}
+
+variable "cloud_image_checksum" {
+  description = "SHA512 of cloud_image_url, from the SHA512SUMS file alongside it."
+  type        = string
+  default     = "8ea9faae810043a0b35b0149f05014f26705c2339ffb11ead308f33e844a87cc3ef46ec81d5262b38817b6a88af404874d48a5857ebe072ef6a31dfb6e371f50"
+}
+
 variable "gateway" {
   type    = string
   default = "192.168.1.1"
@@ -348,13 +360,16 @@ module "darkfall" {
   # The container doubles as the build rack and joins the headscale mesh, which
   # is WireGuard. An unprivileged LXC cannot create the device itself.
   #
-  # NOT YET APPLIED. The device is currently provided by two hand-written lines
-  # in /etc/pve/lxc/180.conf that predate this block and that tofu knows nothing
-  # about, so a recreate would silently drop them. Applying this needs a window:
-  # it restarts the container, and both mechanisms would otherwise mount into
-  # dev/net at once. Delete these from 180.conf in the same pass:
+  # Applied 2026-09-02, and it cost an outage worth writing down. Two
+  # hand-written lines in /etc/pve/lxc/180.conf predated this block:
   #   lxc.cgroup2.devices.allow: c 10:200 rwm
   #   lxc.mount.entry: /dev/net dev/net none bind,create=dir
+  # Adding dev0 alongside them left PVE's autodev hook creating /dev/net/tun
+  # under a dev/net the raw bind had already mounted over, so the container
+  # stopped and would not start: "Failed to run autodev hooks", status 17.
+  # Deleting both lines and starting it fixed it. Nothing here is stale now, but
+  # any future raw lxc.* line for a device this module also manages will do the
+  # same thing again.
   device_passthrough = {
     tun = {
       path = "/dev/net/tun"
@@ -413,6 +428,68 @@ module "clips" {
   # 180 and 35 both belong to darkfall.
   tags          = ["clips", "tofu"]
   startup_order = 45
+}
+
+# --- Code -------------------------------------------------------------------
+# Forgejo, the git server. Its own container rather than a service on build:
+# the Actions runner that lives on build drives the host Docker socket, which
+# is root-equivalent there, and the git history is the one thing on this host
+# that is not regenerable.
+#
+# Repositories stay in the rootfs rather than on a bind mount, which is the
+# opposite of every other container here and deliberate: vzdump skips bind
+# mounts, and repositories are exactly what the nightly archive should hold.
+
+module "code" {
+  source = "../../../modules/lxc"
+
+  node_name        = var.node_name
+  vm_id            = 210
+  hostname         = "code"
+  template_file_id = var.template_file_id
+
+  cores     = 2
+  memory    = 4096
+  disk_size = 32
+
+  ipv4_address = "192.168.1.210/24"
+  ipv4_gateway = var.gateway
+  dns_servers  = var.dns_servers
+
+  ssh_public_keys = var.ssh_public_keys
+
+  # Between clips (45) and build (50): the runner on build registers against
+  # this, so it should already be answering when build comes up.
+  tags          = ["code", "tofu"]
+  startup_order = 48
+}
+
+# --- Design -----------------------------------------------------------------
+# Penpot, kept internal behind Caddy. PostgreSQL and uploaded assets both live
+# in Docker volumes on the rootfs, so the normal vzdump job captures a complete
+# restorable instance. The 100G disk follows Penpot's recommended starting
+# point for small installations and can grow in place if the workspace does.
+
+module "design" {
+  source = "../../../modules/lxc"
+
+  node_name        = var.node_name
+  vm_id            = 230
+  hostname         = "design"
+  template_file_id = var.template_file_id
+
+  cores     = 4
+  memory    = 8192
+  disk_size = 100
+
+  ipv4_address = "192.168.1.230/24"
+  ipv4_gateway = var.gateway
+  dns_servers  = var.dns_servers
+
+  ssh_public_keys = var.ssh_public_keys
+
+  tags          = ["design", "tofu"]
+  startup_order = 42
 }
 
 # --- Build ------------------------------------------------------------------
@@ -552,6 +629,67 @@ module "backup" {
   startup_order = 40
 }
 
+# --- Pelican ----------------------------------------------------------------
+# Game server hosting: the Pelican panel plus its Wings daemon, which is what
+# actually starts a SteamCMD server in a container.
+#
+# The only KVM guest on this node, and not a preference. Wings is documented as
+# unsupported under LXC: it sets cgroup, memory and swap limits on the Docker
+# containers it launches, which an unprivileged container is not allowed to do
+# for containers of its own. Everything else here stays an LXC.
+#
+# Server files live on a second disk on the fast pool, excluded from vzdump the
+# way darkfall's is. A SteamCMD library is tens of gigabytes per title and all
+# of it is re-downloadable; the panel's own database is on the root disk, which
+# the nightly archive does capture.
+
+resource "proxmox_virtual_environment_download_file" "debian_cloud_image" {
+  node_name    = var.node_name
+  datastore_id = "local"
+
+  # import, not iso: only that content type can be handed to a disk's
+  # import_from, and only uncompressed images qualify.
+  content_type = "import"
+  url          = var.cloud_image_url
+  file_name    = "debian-13-genericcloud-amd64.qcow2"
+
+  checksum           = var.cloud_image_checksum
+  checksum_algorithm = "sha512"
+}
+
+module "pelican" {
+  source = "../../../modules/vm"
+
+  node_name           = var.node_name
+  vm_id               = 220
+  hostname            = "pelican"
+  cloud_image_file_id = proxmox_virtual_environment_download_file.debian_cloud_image.id
+
+  cores     = 8
+  memory    = 16384
+  disk_size = 32
+
+  extra_disks = {
+    volumes = {
+      interface    = "scsi1"
+      size         = 300
+      datastore_id = "fast-vm"
+      backup       = false
+    }
+  }
+
+  ipv4_address = "192.168.1.220/24"
+  ipv4_gateway = var.gateway
+  dns_servers  = var.dns_servers
+
+  ssh_public_keys = var.ssh_public_keys
+
+  # Last of the services, ahead of build only. A game server nobody is on is
+  # not worth booting before the media stack.
+  tags          = ["game", "tofu"]
+  startup_order = 49
+}
+
 # --- Outputs ----------------------------------------------------------------
 
 output "containers" {
@@ -597,6 +735,16 @@ output "containers" {
       hostname = module.build.hostname
       ip       = module.build.ip
     }
+    code = {
+      vm_id    = module.code.vm_id
+      hostname = module.code.hostname
+      ip       = module.code.ip
+    }
+    design = {
+      vm_id    = module.design.vm_id
+      hostname = module.design.hostname
+      ip       = module.design.ip
+    }
     backup = {
       vm_id    = module.backup.vm_id
       hostname = module.backup.hostname
@@ -606,6 +754,11 @@ output "containers" {
       vm_id    = module.files.vm_id
       hostname = module.files.hostname
       ip       = module.files.ip
+    }
+    pelican = {
+      vm_id    = module.pelican.vm_id
+      hostname = module.pelican.hostname
+      ip       = module.pelican.ip
     }
   }
 }

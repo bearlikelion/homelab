@@ -1,0 +1,326 @@
+---
+# Pelican: a web panel for game servers, plus Wings, the daemon that actually
+# runs them. Reached as games.{{ internal_domain }} through Caddy on edge.
+#
+# Driven from the CLI rather than the panel's web installer, so a rebuilt
+# machine comes back with an admin account and a registered node already in
+# place. What is left for the UI is genuinely per-server: which game, how much
+# memory, which port.
+#
+# Swap accounting needs no kernel cmdline here. Debian 13 boots cgroup v2, which
+# accounts swap by default; the swapaccount=1 that every Pterodactyl guide asks
+# for is a cgroup v1 workaround.
+
+- name: Look for the game server volume
+  ansible.builtin.stat:
+    path: "{{ pelican_volume_device }}"
+  register: pelican_volume
+
+- name: Fail early without the game server volume
+  ansible.builtin.assert:
+    that: pelican_volume.stat.exists
+    fail_msg: >-
+      {{ pelican_volume_device }} does not exist. The disk comes from the
+      extra_disks block in live/prod/node/main.tf; run make apply first.
+
+# Idempotent by default: the module refuses to reformat a disk that already
+# holds a filesystem rather than taking the servers with it.
+- name: Format the game server volume
+  community.general.filesystem:
+    fstype: ext4
+    dev: "{{ pelican_volume_device }}"
+
+- name: Mount the game server volume
+  ansible.posix.mount:
+    src: "{{ pelican_volume_device }}"
+    path: "{{ pelican_volume_root }}"
+    fstype: ext4
+    opts: defaults,noatime
+    state: mounted
+
+# Wings calls the panel back at its internal name, which Caddy signs with its
+# own root. The wings image is distroless and cannot run update-ca-certificates
+# itself, so the finished bundle is what gets mounted in.
+- name: Trust the Caddy internal CA
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../caddy-root-ca.crt"
+    dest: /usr/local/share/ca-certificates/caddy-root-ca.crt
+    mode: "0644"
+  register: pelican_ca
+
+- name: Rebuild the trust store
+  ansible.builtin.command: update-ca-certificates
+  when: pelican_ca.changed
+
+# Wings runs as root out of a distroless image, so its paths stay root's.
+- name: Create the daemon directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ pelican_dir }}"
+    - /etc/pelican
+    - /var/log/pelican
+    - /tmp/pelican
+    - "{{ pelican_volume_root }}/volumes"
+
+# The panel's are www-data's. Leaving them to root leaves php-fpm unable to
+# write its own database, logs or uploads, which surfaces as a permission error
+# on the Laravel log and not as anything that names the real cause.
+- name: Create the panel directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ panel_uid }}"
+    group: "{{ panel_gid }}"
+    mode: "0770"
+  loop:
+    - "{{ pelican_data_dir }}"
+    - "{{ pelican_data_dir }}/database"
+    - "{{ pelican_logs_dir }}"
+    - "{{ pelican_plugins_dir }}"
+
+# Ownership only, no mode: anything the entrypoint already created as root has
+# to be handed over, and re-setting modes here would fight the explicit ones
+# above on every run.
+- name: Own the panel data
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ panel_uid }}"
+    group: "{{ panel_gid }}"
+    recurse: true
+  loop:
+    - "{{ pelican_data_dir }}"
+    - "{{ pelican_logs_dir }}"
+    - "{{ pelican_plugins_dir }}"
+
+# The panel writes this file itself on a cold start and reads it forever after.
+# Seeding it is what makes APP_INSTALLED skip the web installer: the entrypoint
+# migrates on boot only when it finds the flag already true.
+- name: Seed the application key
+  ansible.builtin.shell: |
+    umask 077
+    printf 'APP_KEY=base64:%s\nAPP_INSTALLED=true\n' "$(head -c 32 /dev/urandom | base64)" \
+      > {{ pelican_data_dir }}/.env
+  args:
+    creates: "{{ pelican_data_dir }}/.env"
+
+- name: Own the application key
+  ansible.builtin.file:
+    path: "{{ pelican_data_dir }}/.env"
+    owner: "{{ panel_uid }}"
+    group: "{{ panel_gid }}"
+    mode: "0640"
+
+# Laravel will not create a sqlite file it was told to open, and the panel's
+# web installer is what normally does it. Migrating into an absent file just
+# errors, so an empty one has to be here before the first start.
+- name: Create the database file
+  ansible.builtin.file:
+    path: "{{ pelican_data_dir }}/database/database.sqlite"
+    state: touch
+    owner: "{{ panel_uid }}"
+    group: "{{ panel_gid }}"
+    mode: "0660"
+    access_time: preserve
+    modification_time: preserve
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ pelican_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: pelican_compose
+
+# The panel alone for now. Wings exits immediately without a node config, and
+# that config does not exist until the panel below has issued it.
+- name: Start the panel
+  community.docker.docker_compose_v2:
+    project_src: "{{ pelican_dir }}"
+    services: [panel]
+    state: present
+    pull: missing
+
+- name: Restart the panel when the compose file changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ pelican_dir }}"
+    services: [panel]
+    state: restarted
+  when: pelican_compose.changed
+
+# Not wait_for on the port: docker-proxy binds the published port as soon as
+# the container exists, so it answers long before anything is listening inside
+# and a stuck entrypoint reads as success. An actual response is the signal.
+# Migrations run ahead of the web server, so one also means the schema is there.
+- name: Wait for the panel
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ pelican_panel_port }}/"
+    status_code: [200, 302]
+    # The panel redirects to its public name, which is a round trip through
+    # edge and back. Following it would test the proxy, not the panel.
+    follow_redirects: none
+  register: pelican_ready
+  retries: 60
+  delay: 5
+  until: pelican_ready is succeeded
+
+- name: Generate the admin password
+  ansible.builtin.shell: |
+    umask 077
+    openssl rand -base64 24 > {{ pelican_dir }}/admin-password
+  args:
+    creates: "{{ pelican_dir }}/admin-password"
+
+- name: Read the admin password
+  ansible.builtin.slurp:
+    src: "{{ pelican_dir }}/admin-password"
+  register: pelican_admin_password
+  no_log: true
+
+# There is no p:user:list to check against, and p:user:make throws on a
+# duplicate email rather than no-opping, so the marker is what makes this
+# re-runnable.
+- name: Create the admin user
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - pelican-panel
+      - php
+      - artisan
+      - p:user:make
+      - --admin=1
+      - --email={{ pelican_admin_email }}
+      - --username={{ pelican_admin_user }}
+      - --password={{ pelican_admin_password.content | b64decode | trim }}
+    creates: "{{ pelican_dir }}/.admin-created"
+  register: pelican_user
+  no_log: true
+
+- name: Mark the admin user as created
+  ansible.builtin.file:
+    path: "{{ pelican_dir }}/.admin-created"
+    state: touch
+    mode: "0644"
+  when: pelican_user.changed
+
+- name: List the existing nodes
+  ansible.builtin.command:
+    argv: [docker, exec, pelican-panel, php, artisan, p:node:list, --format=json]
+  register: pelican_nodes
+  changed_when: false
+  retries: 5
+  delay: 5
+  until: pelican_nodes.rc == 0
+
+# scheme https with proxy 1 is the combination that tells the panel to reach the
+# daemon through Caddy on 443 while wings itself keeps serving plain http on
+# 8080. The browser opens the console websocket to the same name, so an https
+# page is never asking for an http socket.
+- name: Create the node
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - pelican-panel
+      - php
+      - artisan
+      - p:node:make
+      - --name={{ pelican_node_name }}
+      - --description=Game servers, this box
+      - --scheme=https
+      - --fqdn=wings.{{ internal_domain }}
+      - --public=1
+      - --proxy=1
+      - --maintenance=0
+      - --maxMemory={{ pelican_node_memory }}
+      - --overallocateMemory=0
+      - --maxDisk={{ pelican_node_disk }}
+      - --overallocateDisk=0
+      - --maxCpu=0
+      - --overallocateCpu=-1
+      - --uploadSize=256
+      - --daemonListeningPort={{ wings_port }}
+      - --daemonConnectingPort=443
+      - --daemonSFTPPort={{ wings_sftp_port }}
+      - --daemonSFTPAlias=sftp.{{ internal_domain }}
+      - --daemonBase={{ pelican_volume_root }}/volumes
+  when: pelican_node_name not in (pelican_nodes.stdout | from_json | map(attribute='name') | list)
+
+- name: Re-read the node list
+  ansible.builtin.command:
+    argv: [docker, exec, pelican-panel, php, artisan, p:node:list, --format=json]
+  register: pelican_nodes
+  changed_when: false
+
+- name: Select the node id
+  ansible.builtin.set_fact:
+    pelican_node_id: >-
+      {{ pelican_nodes.stdout | from_json
+         | selectattr('name', 'equalto', pelican_node_name)
+         | map(attribute='id') | first }}
+
+# Written once. Wings fills the file in with its own defaults on first start, so
+# re-rendering it every deploy would strip them and bounce the daemon for
+# nothing. The token inside does not rotate on its own.
+- name: Write the node configuration
+  ansible.builtin.shell: |
+    set -e
+    docker exec pelican-panel php artisan p:node:configuration {{ pelican_node_id }} \
+      > /etc/pelican/config.yml.tmp
+    mv /etc/pelican/config.yml.tmp /etc/pelican/config.yml
+  args:
+    creates: /etc/pelican/config.yml
+
+- name: Start wings
+  community.docker.docker_compose_v2:
+    project_src: "{{ pelican_dir }}"
+    state: present
+    pull: missing
+
+- name: Restart wings when the compose file changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ pelican_dir }}"
+    services: [wings]
+    state: restarted
+  when: pelican_compose.changed
+
+- name: Wait for wings
+  ansible.builtin.wait_for:
+    port: "{{ wings_port }}"
+    host: 127.0.0.1
+    timeout: 120
+
+# The daemon comes up whether or not it can reach the panel, so a listening
+# port is not the same as a working node.
+#
+# Scoped to the current run. docker logs keeps history across restarts, so an
+# unscoped grep re-reports errors from before whatever fixed them, which reads
+# as a deploy that failed when it did not.
+- name: Check for daemon errors
+  ansible.builtin.shell: |
+    set -o pipefail
+    started=$(docker inspect -f '{{ "{{" }}.State.StartedAt{{ "}}" }}' pelican-wings)
+    docker logs --since "$started" pelican-wings 2>&1 \
+      | grep -iE "error|panic|failed" | tail -5 || true
+  args:
+    executable: /bin/bash
+  register: wings_errors
+  changed_when: false
+
+- name: Report daemon errors
+  ansible.builtin.debug:
+    msg: "{{ wings_errors.stdout_lines | default([]) }}"
+  when: wings_errors.stdout | length > 0
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Panel at {{ internal_domain_scheme }}://games.{{ internal_domain }}"
+      - "Sign in as {{ pelican_admin_user }}; the password is in {{ pelican_dir }}/admin-password on this box."
+      - "The node is registered. Add allocations under Admin > Nodes > {{ pelican_node_name }} > Allocations,"
+      - "  IP {{ pelican_ip }}, ports {{ pelican_game_port_min }}-{{ pelican_game_port_max }}, before creating a server."
+      - "Forward those ports on the router to {{ pelican_ip }} for anyone outside the LAN to connect."
+      - "Server files land in {{ pelican_volume_root }}/volumes, on the fast pool and out of the nightly archive."

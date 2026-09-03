@@ -26,6 +26,10 @@ all:
       hosts:
         build:
           ansible_host: 192.168.1.150
+    code:
+      hosts:
+        code:
+          ansible_host: 192.168.1.210
     social:
       hosts:
         social:
@@ -46,3 +50,11 @@ all:
       hosts:
         files:
           ansible_host: 192.168.1.190
+    pelican:
+      hosts:
+        pelican:
+          ansible_host: 192.168.1.220
+    design:
+      hosts:
+        design:
+          ansible_host: 192.168.1.230

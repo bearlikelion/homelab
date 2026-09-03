@@ -32,6 +32,11 @@ dns:
     - domain: {{ svc.name }}.{{ internal_domain }}
       answer: {{ edge_ip }}
 {% endfor %}
+    # More specific than the wildcard below, so these win.
+{% for svc in internal_dns_overrides %}
+    - domain: {{ svc.name }}.{{ internal_domain }}
+      answer: {{ svc.answer }}
+{% endfor %}
     # Bare domain and any future name.
     - domain: {{ internal_domain }}
       answer: {{ edge_ip }}

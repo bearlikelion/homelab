@@ -1,0 +1,38 @@
+# Rendered by the forgejo role.
+#
+# SQLite, not Postgres: a single-user instance with one runner never reaches
+# the write concurrency that makes the difference matter, and it keeps the
+# whole instance to one directory that vzdump already captures.
+services:
+  forgejo:
+    image: {{ forgejo_image }}
+    container_name: forgejo
+    restart: unless-stopped
+    environment:
+      - USER_UID={{ forgejo_uid }}
+      - USER_GID={{ forgejo_gid }}
+      - TZ={{ timezone }}
+      # Forgejo speaks plain HTTP; Caddy terminates TLS and this is the name it
+      # does it under, so links in mails and the clone box carry the https one.
+      - FORGEJO__server__DOMAIN=code.{{ internal_domain }}
+      - FORGEJO__server__ROOT_URL={{ internal_domain_scheme }}://code.{{ internal_domain }}/
+      - FORGEJO__server__HTTP_PORT=3000
+      # git.{{ internal_domain }}, not code: SSH is not HTTP, so it cannot go
+      # through Caddy and has to resolve to this container directly.
+      - FORGEJO__server__SSH_DOMAIN=git.{{ internal_domain }}
+      - FORGEJO__server__SSH_PORT={{ forgejo_ssh_port }}
+      - FORGEJO__database__DB_TYPE=sqlite3
+      - FORGEJO__database__PATH=/data/forgejo/forgejo.db
+      # Skips the first-run web installer, which would otherwise sit in front of
+      # everything until someone clicks through it.
+      - FORGEJO__security__INSTALL_LOCK=true
+      - FORGEJO__service__DISABLE_REGISTRATION={{ forgejo_disable_registration | lower }}
+      - FORGEJO__actions__ENABLED=true
+      - FORGEJO__repository__DEFAULT_BRANCH={{ forgejo_default_branch }}
+    volumes:
+      - {{ forgejo_data_dir }}:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "{{ forgejo_port }}:3000"
+      - "{{ forgejo_ssh_port }}:22"

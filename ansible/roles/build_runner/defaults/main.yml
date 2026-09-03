@@ -1,0 +1,50 @@
+---
+# Forgejo Actions runner on the build box, pointed at the Forgejo in the code
+# container. Separate from the forgejo_runner role, which registers the darkfall
+# rack against the project's own Forgejo on AWS.
+
+build_runner_name: "{{ inventory_hostname }}"
+
+# Trailing slash: the runner joins paths onto this, and Forgejo's own examples
+# carry it.
+build_runner_url: "{{ internal_domain_scheme }}://code.{{ internal_domain }}/"
+
+# Inventory name of the host running Forgejo. Registration is a server-side
+# command, so it is delegated there.
+build_runner_forgejo_host: code
+
+build_runner_version: "13.0.0"
+build_runner_image: "code.forgejo.org/forgejo/runner:{{ build_runner_version }}"
+
+# On the bind mount, not the 32G rootfs: the job workspaces and the Actions
+# cache both live under here.
+build_runner_dir: "{{ build_root }}/ci"
+
+# ubuntu-latest as well as docker, so a workflow copied from GitHub runs without
+# its runs-on being rewritten. Node is not incidental: checkout, cache and
+# upload-artifact are Node actions, so the job image needs a runtime for them.
+build_runner_job_image: node:22-bookworm
+build_runner_labels:
+  - "ubuntu-latest:docker://{{ build_runner_job_image }}"
+  - "docker:docker://{{ build_runner_job_image }}"
+
+# One job at a time. 24 cores is a lot, but a Godot build takes all of them and
+# a second concurrent job only makes both slower.
+build_runner_capacity: 1
+build_runner_job_timeout: 3h
+
+# Caddy signs the internal names with its own root, so the runner and every job
+# container have to trust it or registration fails on certificate verification.
+# The edge role writes this file out on each deploy.
+build_runner_ca_cert: "{{ playbook_dir }}/../caddy-root-ca.crt"
+build_runner_ca_dest: /usr/local/share/ca-certificates/caddy-internal.crt
+
+# The container resolves through the router rather than AdGuard, so the internal
+# name is pinned instead of assumed. Redundant, and harmless, if DNS answers it.
+build_runner_host_aliases:
+  - "code.{{ internal_domain }}:{{ edge_ip }}"
+
+# A job container may bind only what is listed here. The certificate store is
+# the one thing every job needs and cannot supply itself.
+build_runner_valid_volumes:
+  - /etc/ssl/certs

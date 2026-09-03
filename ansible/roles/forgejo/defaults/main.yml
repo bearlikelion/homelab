@@ -1,0 +1,26 @@
+---
+# Overridable in group_vars. Kept here so the role stands on its own.
+
+forgejo_image: codeberg.org/forgejo/forgejo:16.0.3
+
+code_dir: /opt/code
+forgejo_data_dir: "{{ code_dir }}/data"
+
+forgejo_port: 3000
+
+# Published on the container, mapped to the image's sshd on 22. The LXC's own
+# sshd owns 22 and Ansible connects over it, so the git endpoint cannot have it.
+forgejo_ssh_port: 2222
+
+# The image runs as git, uid 1000, and the data directory is bind mounted, so
+# the host side has to be owned by the same id.
+forgejo_uid: 1000
+forgejo_gid: 1000
+
+forgejo_admin_user: mark
+forgejo_admin_email: "{{ acme_email }}"
+
+# One account, created by this role. Anyone else is added from the admin UI.
+forgejo_disable_registration: true
+
+forgejo_default_branch: main

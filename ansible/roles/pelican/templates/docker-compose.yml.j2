@@ -1,0 +1,83 @@
+# Rendered by the pelican role.
+#
+# Two services on one box. The panel is a Laravel app that only ever talks to
+# its own sqlite database; wings is the daemon that turns "install Valheim" into
+# a container on this VM's Docker daemon. Splitting them across machines only
+# starts to pay off with more than one node.
+services:
+  panel:
+    image: {{ panel_image }}
+    container_name: pelican-panel
+    restart: unless-stopped
+    # Bind mounts rather than named volumes, so the sqlite database and the
+    # generated .env sit in a directory vzdump captures and a person can read.
+    #
+    # No user override. The image sets USER www-data and chowns /pelican-data
+    # to it at build time; forcing root here only moves the entrypoint, because
+    # the php-fpm pool drops to www-data regardless, and it then cannot write
+    # its own database or logs on a root-owned bind mount. The role owns the
+    # host side to match instead. Caddy still binds 80 as www-data, since
+    # Docker sets ip_unprivileged_port_start=0 in containers.
+    ports:
+      - "{{ pelican_panel_port }}:80"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: {{ internal_domain_scheme }}://games.{{ internal_domain }}
+      # Skips the first-run web installer. The role does what it would have
+      # done: seeds the key, migrates, and creates the admin account.
+      APP_INSTALLED: "true"
+      XDG_DATA_HOME: /pelican-data
+      TZ: {{ timezone }}
+      # Both of these have to be spelled out. The entrypoint waits for a
+      # database server whenever DB_CONNECTION is anything but the literal
+      # "sqlite", and unset is not "sqlite": it spins on `nc` against an empty
+      # host forever and never reaches the migration. An absolute DB_DATABASE
+      # then keeps the file on the bind mount rather than leaning on a symlink
+      # inside the image.
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /pelican-data/database/database.sqlite
+      # Caddy on edge terminates TLS, so the panel's own Caddy drops to plain
+      # http on 80 and takes the scheme from the forwarded headers instead.
+      # Without this every generated URL comes back http and the login POST is
+      # rejected as cross-origin.
+      BEHIND_PROXY: "true"
+      TRUSTED_PROXIES: "{{ edge_ip }},127.0.0.1,172.16.0.0/12"
+      MAIL_DRIVER: log
+    volumes:
+      - {{ pelican_data_dir }}:/pelican-data
+      - {{ pelican_logs_dir }}:/var/www/html/storage/logs
+      - {{ pelican_plugins_dir }}:/var/www/html/plugins
+      # The panel dials the daemon back at wings.{{ internal_domain }}, which
+      # Caddy signs with its own root, so it needs the same trust store wings
+      # does. PHP reads /etc/ssl/cert.pem, but that is a symlink to this file,
+      # so one mount covers both it and the curl binary.
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+
+  wings:
+    image: {{ wings_image }}
+    container_name: pelican-wings
+    restart: unless-stopped
+    # Wings writes an interactive-looking log; without a tty it buffers.
+    tty: true
+    ports:
+      - "{{ wings_port }}:{{ wings_port }}"
+      - "{{ wings_sftp_port }}:{{ wings_sftp_port }}"
+    environment:
+      TZ: {{ timezone }}
+      WINGS_UID: "{{ wings_uid }}"
+      WINGS_GID: "{{ wings_gid }}"
+      WINGS_USERNAME: pelican
+    volumes:
+      # Wings hands these paths to the Docker daemon when it creates a game
+      # server, so each one has to resolve identically on the VM and in here.
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers/:/var/lib/docker/containers/
+      - /etc/pelican/:/etc/pelican/
+      - {{ pelican_volume_root }}/:{{ pelican_volume_root }}/
+      - /var/log/pelican/:/var/log/pelican/
+      - /tmp/pelican/:/tmp/pelican/
+      # The other half of the same loop: wings calls the panel at
+      # games.{{ internal_domain }}. This image is distroless, so it cannot
+      # build a trust store itself and the finished one has to be mounted.
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
