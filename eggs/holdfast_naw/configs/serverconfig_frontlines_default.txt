@@ -1,0 +1,114 @@
+### Server Details
+
+server_name My Frontlines Server
+server_region europe #
+server_admin_password CHANGEME
+server_password
+
+server_port 20100
+steam_query_port 27000
+
+server_welcome_message The Server Welcome Message
+
+server_intro_title Welcome!
+server_intro_body This is a server fresh of the assembly line
+
+network_broadcast_mode Standard
+
+frontlines_mode true
+
+###- Map Rotations
+
+#1 = Countryside (Offensive)
+!map_rotation start
+map_name countryside
+game_mode FrontlinesOffensive
+round_time_minutes 30
+wave_spawn_time_seconds 10
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+spawn_immunity_timer 8
+max_player_respawns -1
+faction_balancing true
+faction_balancing_discrepancy_amount 5
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 150
+nature_preset none
+faction_attacking allied
+faction_defending central
+faction_randomiser both
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+sappers_attacking_starting_materials 100
+sappers_defending_starting_materials 100
+sappers_buildlimit MachineGunAllied attacking 2
+sappers_buildlimit MachineGunAllied defending 2
+sappers_buildlimit MachineGunCentral attacking 2
+sappers_buildlimit MachineGunCentral defending 2
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 30
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+max_accumulated_faction_points -1
+conquest_tick_reward 3
+conquest_ticker_time_seconds 1
+conquest_tickets_per_capture 100
+conquest_max_tickets 7500
+conquest_territory_lock_time_seconds 0
+frontline_offensive_domination_duration_seconds 120
+!map_rotation end
+
+#2 = Freurlund (Offensive)
+!map_rotation start
+map_name freurlund
+game_mode FrontlinesOffensive
+round_time_minutes 30
+wave_spawn_time_seconds 10
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+spawn_immunity_timer 8
+max_player_respawns -1
+faction_balancing true
+faction_balancing_discrepancy_amount 5
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 150
+nature_preset none
+faction_attacking allied
+faction_defending central
+faction_randomiser both
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+sappers_attacking_starting_materials 100
+sappers_defending_starting_materials 100
+sappers_buildlimit MachineGunAllied attacking 3
+sappers_buildlimit MachineGunAllied defending 3
+sappers_buildlimit MachineGunCentral attacking 3
+sappers_buildlimit MachineGunCentral defending 3
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 30
+population_verylow_playable false
+population_low_playable false
+population_medium_playable false
+population_high_playable true
+max_accumulated_faction_points -1
+conquest_tick_reward 3
+conquest_ticker_time_seconds 1
+conquest_tickets_per_capture 100
+conquest_max_tickets 7500
+conquest_territory_lock_time_seconds 0
+frontline_offensive_domination_duration_seconds 120
+!map_rotation end

@@ -1,0 +1,120 @@
+### Server Details
+server_name 24/7 Empire - NEW MAP
+server_region usa #
+server_admin_password CHANGEME
+server_password
+# server_pasKnife hello
+
+server_port 20100
+steam_query_port 27000
+
+server_welcome_message Welcome to 24/7 Empire server, hosted by CarinaMachina
+
+server_intro_title Happy Holdfast Update! 
+server_intro_body Holdfast Update, new map: Empire. Brought to you by CarinaMachina
+
+network_broadcast_mode Balanced
+
+# Map Voting
+# map_voting_enabled false
+# map_voting_duration 15
+# map_voting_allow_same_map true
+# map_voting_history_count 2
+# map_voting_gameplay_modes ArmySiege ArmyBattlefield
+# map_voting_log_file_path logs_output/mapvotinglogs.txt
+
+####################
+# Map Rotations
+####################
+
+!map_rotation start
+map_name empire
+game_mode ArmyBattlefield
+round_time_minutes 20
+reinforcements_per_faction 570
+wave_spawn_time_seconds 10
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+spawn_immunity_timer 5
+max_player_respawns -1
+faction_balancing true
+faction_balancing_discrepancy_amount 8
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 150
+nature_preset none
+faction_attacking british
+faction_defending french
+# faction_randomiser none
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+sappers_attacking_starting_materials 100
+sappers_defending_starting_materials 100
+sappers_buildlimit explosivebarrel attacking 3
+sappers_buildlimit explosivebarrel defending 3
+sappers_buildlimit palisade attacking 3
+sappers_buildlimit palisade defending 3
+sappers_buildlimit shootingplatform attacking 3
+sappers_buildlimit shootingplatform defending 3
+sappers_buildlimit rocketstack attacking 4
+sappers_buildlimit rocketstack defending 4
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 240
+population_verylow_playable false
+population_low_playable false
+population_medium_playable true
+population_high_playable true
+max_accumulated_faction_points -1
+
+# starting_weapons_selection_override British ArmyInfantryOfficer 0 1 Knife
+# starting_weapons_selection_override British ArmyLineInfantry 0 1 Knife
+# starting_weapons_selection_override British Grenadier 0 1 Knife
+# starting_weapons_selection_override British Guard 0 1 Knife
+# starting_weapons_selection_override British LightInfantry 0 1 Knife
+# starting_weapons_selection_override British Rifleman 0 1 Knife
+# starting_weapons_selection_override British FlagBearer 0 1 Knife
+# starting_weapons_selection_override British Musician 0 1 Knife
+# starting_weapons_selection_override British Surgeon 0 1 Knife
+# starting_weapons_selection_override British Sergeant 0 1 Knife
+# starting_weapons_selection_override British Sapper 0 1 Knife
+# starting_weapons_selection_override British Cannoneer 0 1 Knife
+# starting_weapons_selection_override British Rocketeer 0 1 Knife
+# starting_weapons_selection_override British NavalCaptain 0 1 Knife
+# starting_weapons_selection_override British NavalMarine 0 1 Knife
+# starting_weapons_selection_override British NavalSailor 0 1 Knife
+# starting_weapons_selection_override British NavalSailor2 0 1 Knife
+# starting_weapons_selection_override British Carpenter 0 1 Knife
+# starting_weapons_selection_override British CoastGuard 0 1 Knife
+# starting_weapons_selection_override British Customs 0 1 Knife
+# starting_weapons_selection_override British Hussar 0 1 Knife
+# starting_weapons_selection_override British Dragoon 0 1 Knife
+
+# starting_weapons_selection_override French ArmyInfantryOfficer 0 1 Knife
+# starting_weapons_selection_override French ArmyLineInfantry 0 1 Knife
+# starting_weapons_selection_override French Grenadier 0 1 Knife
+# starting_weapons_selection_override French Guard 0 1 Knife
+# starting_weapons_selection_override French LightInfantry 0 1 Knife
+# starting_weapons_selection_override French Rifleman 0 1 Knife
+# starting_weapons_selection_override French FlagBearer 0 1 Knife
+# starting_weapons_selection_override French Musician 0 1 Knife
+# starting_weapons_selection_override French Surgeon 0 1 Knife
+# starting_weapons_selection_override French Sergeant 0 1 Knife
+# starting_weapons_selection_override French Sapper 0 1 Knife
+# starting_weapons_selection_override French Cannoneer 0 1 Knife
+# starting_weapons_selection_override French Rocketeer 0 1 Knife
+# starting_weapons_selection_override French NavalCaptain 0 1 Knife
+# starting_weapons_selection_override French NavalMarine 0 1 Knife
+# starting_weapons_selection_override French NavalSailor 0 1 Knife
+# starting_weapons_selection_override French NavalSailor2 0 1 Knife
+# starting_weapons_selection_override French Carpenter 0 1 Knife
+# starting_weapons_selection_override French CoastGuard 0 1 Knife
+# starting_weapons_selection_override French Customs 0 1 Knife
+# starting_weapons_selection_override French Hussar 0 1 Knife
+# starting_weapons_selection_override French Dragoon 0 1 Knife
+
+!map_rotation end

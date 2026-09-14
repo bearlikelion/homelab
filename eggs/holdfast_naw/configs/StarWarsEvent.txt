@@ -1,0 +1,1453 @@
+###- Server & Steam Ports - DO NOT EDIT
+
+# server_port 16024
+# steam_communications_port 16025
+# steam_query_port 16026
+server_port 20100
+steam_query_port 27000
+
+###- Server Settings - EDIT IN STARTUP TAB
+
+server_name MAY THE 4TH STAR WARS EVENT 5 PM EST!
+server_welcome_message Welcome to the Star Wars Holdfast Event! Trolling, inappropriate chat/VOIP spamming, racism, sexism, and toxicity are not tolerated. Use the force for good. May the 4th be with you!
+server_region usa
+server_admin_password CHANGEME
+server_password
+show_serverperformance_warning false
+
+###- Server Intro Message
+server_intro_title May the 4th be with you!
+server_intro_body Welcome to the Holdfast Star Wars Event!<br <br This event was created by the SPACE regiment and is hosted by CarinaMachina <br <br Trolling, inappropriate chat/VOIP spamming, racism, sexism, and toxicity are not tolerated.<br Use the force for good.<br <br Thanks to MonkeyNipples, DaveTheRave, Davwado, and Toonu for the mods
+
+###- Bandwidth & Performance Settings
+network_broadcast_mode LowBandwidth
+
+###- Global Gameplay & Map Settings
+artillery_fieldgun_respawn_timer 30
+artillery_rocketlauncher_respawn_timer 30
+map_rotation_start_randomise false
+
+###- Administrator Preset Messages
+
+admin_action_preset_reason Toxic|Stop the toxic behavior immediately or you will be banned from the server. This is your only warning
+# admin_action_preset_reason Revived|You have been resconstructed and revived. We will send you the bill.
+# admin_action_preset_reason JEDI-SITH|You are a Jedi or Sith Lord hero. You are encouraged to aggressively engage the enemy in melee combat.
+# admin_action_preset_reason VOIP Spam|Please do not spam inappropriate VOIP during the event.
+# admin_action_preset_reason Chat Spam|Please do not spam or abuse chat during the event.
+# admin_action_preset_reason DARTH|Did you ever hear the tragedy of Darth Plagueis The Wise? I thought not. It is not a story the Jedi would tell you. It is a Sith legend. Darth Plagueis was a Dark Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life… He had such a knowledge of the dark side that he could even keep the ones he cared about from dying. The dark side of the Force is a pathway to many abilities some consider to be unnatural. He became so powerful… the only thing he was afraid of was losing his power, which eventually, of course, he did. Unfortunately, he taught his apprentice everything he knew, then his apprentice killed him in his sleep. Ironic. He could save others from death, but not himself.
+
+
+###- Installed Modifications
+
+# mods_installed 2531692643 #eLF’s AutoAdmin
+# mod_variable 2531692643:punishmentMode:StandardNoFOLSlay
+# mod_variable 2531692643:allChargeState:None
+# mod_variable 2531692643:FOLWarningMessageStart: You discharged your weapon
+# mod_variable 2531692643:FOLDistanceWarningMessage: m too far from your squad! Stay together, soldier!
+# mod_variable 2531692643:ArmyInfantryOfficer:11,2,4,1,3,33
+# mod_variable 2531692643:ArmyLineInfantry:11,2,4,1,3,33
+# mod_variable 2531692643:Grenadier:11,2,4,1,3,33
+# mod_variable 2531692643:Surgeon:11,2,4,1,3,33
+# mod_variable 2531692643:Cannoneer:11,2,4,1,3,33
+
+mods_installed 2940447014 # Battle of Iridonia
+mods_installed 3051405545 #CRATERWARMUP
+###mods_installed 3027230630 #TOONUASTEROIDS
+mods_installed 2951371537 #GeonosisPlains
+mods_installed 2950999066 #Theed
+mods_installed 2951508587 #Kamino
+###mods_installed 3052796700 #NEWKashyyyk
+mods_installed 2950403338 #Kashyyyk
+###mods_installed 2960269522 #Utapau
+mods_installed 2959972912 #JediTemple
+#mods_installed 2954748038 #MosEisleyTatooineREBELS
+###mods_installed 2940447014 #bigshipIridoniaREBELS
+###mods_installed 2142698075 #hoth
+mods_installed 3027963188 #endor
+mods_installed 3056442611 #Malevolencetrain
+mods_installed 2394896841 # SW Space Battle
+###mods_installed 2973393948 #Venator
+mods_installed 3052796700 # Battle of Kashyyk # Unable to load map
+
+
+; mods_installed_server_only 2869563407 #CHPM
+
+#mods_installed 2966553638 #REPUBLICvsCISmod
+mods_installed 2925911456 # Star Wars Sound V2
+mods_installed 2519337751 # Star Wars Sound Effects
+mods_installed 2753590432 # Star Wars Sounds
+
+mods_installed 3473793727 #PRUSSIANOFFICER_obiwan
+mods_installed 3473805319 #PRUSSIANOFFICER_anakin
+mods_installed 2127040994 #PRUSSIANLINE_212thclonetrooperorange
+mods_installed 2127382008 #PRUSSIANLINE_501stattack
+mods_installed 2131614973 #PRUSSIANCANNONEER_clonearty
+mods_installed 2142745885 #PRUSSIANSURGEON_clonesurgeon
+
+mods_installed 3472790526 #BRITISHOFFICER_darthjarjar
+mods_installed 2127953719 #BRITISHOFFICER_darthmaul
+mods_installed 2936371581 #BRITISHOFFICER_dookubritish
+mods_installed 2922595573 #BRITISHLINE_droidb1
+mods_installed 2922574168 #BRITISHGRENADIER_commandodroid
+mods_installed 2924355024 #BRITISHSURGEON_droidb1medic
+mods_installed 2921509625 #BRITISHCANNONEER_droidcannoneer
+
+mods_installed 2811018063 #BRITISHOFFICER_darthvader
+mods_installed 2936482150 #BRITISHGRENADIER_stormtroopergrenadier
+mods_installed 2921482346 #BRITISHLINE_stormtrooper
+
+##mods_installed 2584334451 #PRUSSIANLINE_anzacrebel
+mods_installed 2969727720 #PRUSSIANGREN&GUARD_rebel
+
+# Player Population Settings
+population_verylow_min_players 1
+population_low_min_players 40
+population_medium_min_players 80
+population_high_min_players 100
+
+# Flag Capture Settings
+conquest_stealthcap_reqplayers_verylow 1
+conquest_stealthcap_reqplayers_low 3
+conquest_stealthcap_reqplayers_medium 5
+conquest_stealthcap_reqplayers_high 7
+
+# Global Gameplay & Map Settings
+artillery_fieldgun_respawn_timer 15
+artillery_rocketlauncher_respawn_timer 15
+map_rotation_start_randomise false
+
+# Map Voting
+map_voting_enabled false
+map_voting_duration 8
+map_voting_allow_same_map true
+map_voting_history_count 3
+map_voting_gameplay_modes ArmyBattlefield ArmyConquest ArmySiege Invasion
+
+
+###- Map Rotations
+
+###############################################################
+
+#Rotation 2 = 3051405545 MOON WARMUP
+!map_rotation start
+map_name modmap
+load_mod 3051405545 #CRATERWARMUP
+rc set show_serverperformance_warning false
+nature_preset Ocean_Dark_Night
+
+#Event Server Rules
+server_round_rule ArmyInfantryOfficer,Surgeon,Grenadier,Guard,Cannoneer,ArmyLineInfantry,|<size=16><b>THIS IS THE STAGING ROUND FOR THE EVENT. PLEASE REVIEW THE NOTES BELOW</b></size><br><br><size=16><b>• Welcome to the Star Wars Event! We will begin shortly.<br>•Be sure to customize to a StarWars skin in the M menu <br>• Jedi and Sith heroes are given extra health during the event. <br>• Please rotate through limited classes so everyone can get a turn.  <br>• Trolling, inappropriate chat/VOIP spamming, racism, sexism, and toxicity are not tolerated. Use the force for good. <br>• To access the extra emotes change, Settings -> Advanced Settings ON -> Interactable Popup: Legacy  <br> • Damage has been turned to a lower percentage it takes a few shots to kill - stay with your teammates to ensure victory! <br>• Have fun! <br></b></size>
+
+round_time_minutes 9999
+reinforcements_per_faction 99999
+round_spawn_close_timer_seconds 99999
+
+#load_mod 2966553638 #REPUBLICvsCISmod
+load_mod 2925911456 #devnewsound
+load_mod 2519337751 # Star Wars Sound Effects
+load_mod 2753590432 # Star Wars Sounds
+
+load_mod 3473793727 #PRUSSIANOFFICER_obiwan
+load_mod 3473805319 #PRUSSIANOFFICER_anakin
+load_mod 2127040994 #PRUSSIANLINE_212thclonetrooperorange
+load_mod 2127382008 #PRUSSIANLINE_501stattack
+load_mod 2131614973 #PRUSSIANCANNONEER_clonearty
+load_mod 2142745885 #PRUSSIANSURGEON_clonesurgeon
+
+load_mod 3472790526 #BRITISHOFFICER_darthjarjar
+load_mod 2127953719 #BRITISHOFFICER_darthmaul
+load_mod 2811018063 #BRITISHOFFICER_darthvader
+load_mod 2936371581 #BRITISHOFFICER_dookubritish
+load_mod 2922595573 #BRITISHLINE_droidb1
+load_mod 2922574168 #BRITISHGRENADIER_commandodroid
+load_mod 2924355024 #BRITISHSURGEON_droidb1medic
+load_mod 2921509625 #BRITISHCANNONEER_droidcannoneer
+
+load_mod 2936482150 #BRITISHGRENADIER_stormtroopergrenadier
+load_mod 2921482346 #BRITISHLINE_stormtrooper
+load_mod 2969727720 #PRUSSIANGREN&GUARD_rebel
+
+
+game_mode ArmyBattlefield
+game_type Hardcore
+lobby_override_game_mode Roleplaying
+max_player_respawns -1
+spawn_immunity_timer 2
+exclusive_modded_uniforms true
+faction_balancing false
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 200
+friendly_fire false
+faction_attacking prussian
+faction_defending british
+population_verylow_playable false
+population_low_playable false
+population_medium_playable false
+population_high_playable false
+
+#Spawn Override
+spawn_override A ArmyInfantryOfficer 99
+spawn_override A ArmyLineInfantry 99
+spawn_override A Grenadier 99
+spawn_override A Guard 99
+spawn_override A Surgeon 99
+spawn_override A Cannoneer 99
+spawn_override B ArmyInfantryOfficer 99
+spawn_override B ArmyLineInfantry 99
+spawn_override B Grenadier 99
+spawn_override B Guard 99
+spawn_override B Surgeon 99
+spawn_override B Cannoneer 99
+
+starting_weapons_selection_override British ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override Prussian ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override British ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override Prussian Grenadier 9 9 WW1_Revolver
+starting_weapons_selection_override British Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Guard 9 9 WW1_Revolver
+starting_weapons_selection_override British Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Cannoneer 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Cannoneer 9 9 WW1_RifleUnbayonetted
+
+#Round Start Automated Commands
+rc set allowFiring true
+rc set characterRespawntime 1
+rc set characterVehicleRespawnTime 1
+rc set cannonMoverSpeedMultiplier 2
+rc set cannonMoverRotationMultiplier 2
+rc set rocketMoverSpeedMultiplier 2
+rc set rocketMoverRotationMultiplier 2
+rc set allowPreviewAnimations true
+rc set characterRunSpeed 2.2
+rc set characterJumpForce 2.2
+rc set characterFallDamageEnabled false
+rc set characterInfiniteFirearmAmmo true
+rc set drawFirearmTrajectories false
+rc set characterWeaponDamageScale 0.2
+rc set ragdollForceMultiplier 8
+class_system_orders false
+class_system_orders_reinforce false
+class_system_orders_reinforce_limit 5
+class_system_orders_reinforce_cooldown 120
+
+!map_rotation end
+
+#
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+
+
+#Rotation 3 = 2951371537 #GeonosisPlains
+!map_rotation start
+map_name modmap
+load_mod 2951371537 #GeonosisPlains
+nature_preset Sand_Fog_Medium
+round_time_minutes 13.3
+reinforcements_per_faction 250
+round_spawn_close_timer_seconds 999
+
+objects_override FrontlinesMoveableHeavyMortar -2 775.81 99.13 0.00 174.89 0.00 FrontlinesHeavyMortar
+objects_override FrontlinesMortarAmmoboxMoveable -6 775.81 98.69 0.00 174.89 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesMoveableHeavyMortar -10 775.81 98.30 0.00 174.89 0.00 FrontlinesHeavyMortar
+objects_override FrontlinesMortarAmmoboxMoveable -14 775.81 98.09 0.00 174.89 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesMoveableHeavyMortar -18 775.81 97.80 0.00 174.89 0.00 FrontlinesHeavyMortar
+objects_override FrontlinesMortarAmmoboxMoveable -22 775.81 97.64 0.00 174.89 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesMoveableHeavyMortar -26 775.81 97.38 0.00 172.32 0.00 FrontlinesHeavyMortar
+objects_override FrontlinesMortarAmmoboxMoveable -30 775.81 97.11 0.00 174.89 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesMoveableHeavyMortar -34 775.81 97.06 0.00 182.59 0.00 FrontlinesHeavyMortar
+objects_override FrontlinesMortarAmmoboxMoveable -38 775.81 97.23 0.00 183.23 0.00 FrontlinesMortarAmmobox
+
+objects_override FrontlinesHeavyHowitzer 5 775.81 76.60 0.00 167.50 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable -5 775.81 76.22 0.00 167.50 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesHeavyHowitzer -15 775.81 76.22 0.00 167.50 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable -25 775.81 76.22 0.00 167.50 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesHeavyHowitzer -35 775.81 76.22 0.00 167.50 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable -45 775.81 76.22 0.00 167.50 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesHeavyHowitzer -55 775.81 76.22 0.00 167.50 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable -65 775.81 76.22 0.00 167.50 0.00 FrontlinesMortarAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 22.23 778.42 75.51 0.00 184.85 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 26.19 778.42 76.72 0.00 325.70 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 38.09 775.34 -52.87 0.00 178.94 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 35.29 775.06 -50.94 0.00 89.72 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 29.35 775.36 -52.95 0.00 176.02 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 32.19 774.92 -50.06 0.00 268.74 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesLightHowitzer 180 775.98 15.49 0.00 222.42 0.00 FrontlinesLightHowitzer
+objects_override FrontlinesLightHowitzer 174 775.98 20.98 0.00 222.42 0.00 FrontlinesLightHowitzer
+objects_override FrontlinesLightHowitzer 168 775.98 26.37 0.00 222.42 0.00 FrontlinesLightHowitzer
+objects_override FrontlinesLightHowitzer 162.38 775.98 31.49 0.00 223.37 0.00 FrontlinesLightHowitzer
+objects_override FrontlinesLightHowitzer 156.13 775.98 36.99 0.00 221.13 0.00 FrontlinesLightHowitzer
+objects_override FrontlinesLightHowitzer 150.17 775.98 42.19 0.00 221.13 0.00 FrontlinesLightHowitzer
+
+objects_override FrontlinesStaticMachineGunAllied -21.97 778.68 -306.75 0.00 2.36 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox -19.75 777.54 -310.15 0.00 270.23 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied -49.04 776.63 -288.49 0.00 11.22 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox -47.50 776.63 -289.38 0.00 278.18 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied -86.08 778.13 -260.12 0.00 5.12 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox -90.82 778.13 -262.54 0.00 109.93 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 91.64 777.40 -57.37 0.00 301.10 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 91.66 777.40 -59.72 0.00 58.52 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesMoveableHeavyMortar -40 775.69 -272.76 0.00 358.64 0.00 FrontlinesHeavyMortar
+objects_override FrontlinesMortarAmmoboxMoveable -35 775.69 -272.63 0.00 358.64 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesMoveableHeavyMortar -30 775.69 -272.63 0.00 358.64 0.00 FrontlinesHeavyMortar
+objects_override FrontlinesMortarAmmoboxMoveable -25 775.69 -272.63 0.00 358.64 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesMoveableHeavyMortar -20 775.69 -272.63 0.00 358.64 0.00 FrontlinesHeavyMortar
+objects_override FrontlinesMortarAmmoboxMoveable -15 775.69 -272.63 0.00 358.64 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesMoveableHeavyMortar -10 775.69 -272.63 0.00 358.64 0.00 FrontlinesHeavyMortar
+objects_override FrontlinesMortarAmmoboxMoveable -5 775.69 -272.63 0.00 358.64 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesMoveableHeavyMortar 0 775.69 -272.63 0.00 358.64 0.00 FrontlinesHeavyMortar
+objects_override FrontlinesMortarAmmoboxMoveable 5 775.69 -272.63 0.00 358.64 0.00 FrontlinesMortarAmmobox
+
+objects_override FrontlinesHeavyHowitzer -56.81 775.69 -257.59 0.00 3.45 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable -52.91 775.69 -258.37 0.00 5.69 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesHeavyHowitzer -49.40 775.69 -258.72 0.00 5.69 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable -46.72 775.68 -258.99 0.00 5.69 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesHeavyHowitzer -42.67 775.66 -259.39 0.00 10.48 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable -39.22 775.66 -260.13 0.00 12.11 0.00 FrontlinesMortarAmmobox
+objects_override FrontlinesHeavyHowitzer -34.90 775.67 -260.78 0.00 3.77 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable -31.53 775.68 -261.00 0.00 3.77 0.00 FrontlinesMortarAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 4.08 775.73 -288.53 0.00 2.67 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesStaticMachineGunAllied -1.94 775.69 -288.52 0.00 356.57 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 1.11 775.73 -291.98 0.00 0.96 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 53.92 779.65 -282.65 0.00 354.61 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 50.91 779.65 -284.84 0.00 83.78 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 99.22 802.01 -172.81 0.00 235.90 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesStaticMachineGunAllied 97.96 802.01 -167.38 0.00 275.68 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesStaticMachineGunAllied 103.94 802.01 -159.31 0.00 321.16 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 101.11 802.01 -165.89 0.00 284.31 0.00 FrontlinesMachineGunAmmobox
+
+rc set characterWeaponDamageScale 0.3
+rc set ragdollForceMultiplier 7
+rc set characterMeleeHitOpponentStunTime 0
+rc set characterMeleeInterruptedStunTime 0
+
+; load_mod_server_only 2869563407 #CHPM
+; mod_variable_local CHPM:chpm_class_override:ATTACK,ArmyInfantryOfficer,-250
+; mod_variable_local CHPM:chpm_class_override:DEFEND,ArmyInfantryOfficer,-250
+
+#load_mod 2966553638 #REPUBLICvsCISmod
+load_mod 2925911456 #devnewsound
+
+#load_mod 3473793727 #PRUSSIANOFFICER_obiwan
+#load_mod 3473805319 #PRUSSIANOFFICER_anakin
+load_mod 2127040994 #PRUSSIANLINE_212thclonetrooperorange
+load_mod 2127382008 #PRUSSIANLINE_501stattack
+load_mod 2131614973 #PRUSSIANCANNONEER_clonearty
+load_mod 2142745885 #PRUSSIANSURGEON_clonesurgeon
+
+#load_mod 3472790526 #BRITISHOFFICER_darthjarjar
+#load_mod 2127953719 #BRITISHOFFICER_darthmaul
+#load_mod 2936371581 #BRITISHOFFICER_dookubritish
+load_mod 2922595573 #BRITISHLINE_droidb1
+load_mod 2922574168 #BRITISHGRENADIER_commandodroid
+load_mod 2924355024 #BRITISHSURGEON_droidb1medic
+load_mod 2921509625 #BRITISHCANNONEER_droidcannoneer
+
+game_mode ArmyBattlefield
+game_type Hardcore
+lobby_override_game_mode Roleplaying
+max_player_respawns -1
+spawn_immunity_timer 4
+exclusive_modded_uniforms true
+faction_balancing false
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 200
+friendly_fire false
+faction_attacking prussian
+faction_defending british
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+
+#Spawn Override
+spawn_override A ArmyInfantryOfficer 9
+spawn_override A ArmyLineInfantry 199
+spawn_override A Grenadier 9
+spawn_override A Guard 9
+spawn_override A Surgeon 9
+spawn_override A Cannoneer 9
+spawn_override B ArmyInfantryOfficer 9
+spawn_override B ArmyLineInfantry 199
+spawn_override B Grenadier 9
+spawn_override B Guard 9
+spawn_override B Surgeon 9
+spawn_override B Cannoneer 9
+
+starting_weapons_selection_override British ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override Prussian ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override British ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override Prussian Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override British Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Cannoneer 9 9 WW1_RifleUnbayonetted WW1_ExplosiveGrenade
+starting_weapons_selection_override Prussian Cannoneer 9 9 WW1_RifleUnbayonetted WW1_ExplosiveGrenade
+
+#Round Start Automated Commands
+rc set allowFiring true
+rc set characterRespawntime 3
+rc set characterVehicleRespawnTime 3
+rc set cannonMoverSpeedMultiplier 2
+rc set cannonMoverRotationMultiplier 2
+rc set rocketMoverSpeedMultiplier 2
+rc set rocketMoverRotationMultiplier 2
+rc set allowPreviewAnimations true
+rc set characterFallDamageEnabled false
+rc set characterInfiniteFirearmAmmo true
+rc set drawFirearmTrajectories false
+class_system_orders false
+class_system_orders_reinforce false
+
+
+#Timed Automated Commands
+rc delayed 799 set characterRunSpeed 0.1
+rc delayed 799 set characterWalkSpeed 0.1
+rc delayed 799 set characterJumpForce 0.1
+rc delayed 799 set characterRespawnTime 3
+rc delayed 790 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 780 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 770 broadcast FIRST BATTLE OF GENOSIS - 22 BBY
+rc delayed 765 broadcast Troops are finishing dropping. Prepare for imminent combat.
+rc delayed 761 broadcast Troop deployment completing. Prepare for battle in 3...
+rc delayed 759 broadcast Troop deployment completing. Prepare for battle in 2...
+rc delayed 757 broadcast Troop deployment completing. Prepare for battle in 1...
+rc delayed 755 broadcast ENGAGE ENGAGE ENGAGE
+rc delayed 755 set characterRunSpeed 1.4
+rc delayed 755 set characterWalkSpeed 1.4
+rc delayed 755 set characterJumpForce 1.6
+rc delayed 751 broadcast Sir, we have rescued the Jedi, but the battle rages on. If we can crush the Confederacy here, this war will be a quick one.
+rc delayed 15 broadcast This battle is too close to call anything but a pyrrhic victory. Let us regroup and hit them again.
+rc delayed 10 broadcast Prepare for extraction. Ships landing. Extracting in 3...
+rc delayed 8 broadcast Prepare for extraction. Ships landing. Extracting in 2...
+rc delayed 6 broadcast Prepare for extraction. Ships landing. Extracting in 1...
+rc delayed 3 broadcast All troops aboard. Heading to hyperspace.
+!map_rotation end
+
+##############################################################################################################################
+
+#Rotation 4 = 2959972912 #JediTemple
+!map_rotation start
+map_name modmap
+load_mod 2959972912 #JediTemple
+nature_preset Forest_Clear_Night
+round_time_minutes 13.3
+reinforcements_per_faction 300
+round_spawn_close_timer_seconds 999
+rc set characterWeaponDamageScale 0.3
+rc set ragdollForceMultiplier 7
+rc set characterMeleeHitOpponentStunTime 0
+rc set characterMeleeInterruptedStunTime 0
+
+; load_mod_server_only 2869563407 #CHPM
+; mod_variable_local CHPM:chpm_class_override:ATTACK,ArmyInfantryOfficer,-250
+; mod_variable_local CHPM:chpm_class_override:DEFEND,ArmyInfantryOfficer,-250
+
+#load_mod 2966553638 #REPUBLICvsCISmod
+load_mod 2925911456 #devnewsound
+
+#load_mod 3473793727 #PRUSSIANOFFICER_obiwan
+#load_mod 3473805319 #PRUSSIANOFFICER_anakin
+load_mod 2127040994 #PRUSSIANLINE_212thclonetrooperorange
+load_mod 2127382008 #PRUSSIANLINE_501stattack
+load_mod 2131614973 #PRUSSIANCANNONEER_clonearty
+load_mod 2142745885 #PRUSSIANSURGEON_clonesurgeon
+
+#load_mod 3472790526 #BRITISHOFFICER_darthjarjar
+#load_mod 2127953719 #BRITISHOFFICER_darthmaul
+#load_mod 2936371581 #BRITISHOFFICER_dookubritish
+load_mod 2922595573 #BRITISHLINE_droidb1
+load_mod 2922574168 #BRITISHGRENADIER_commandodroid
+load_mod 2924355024 #BRITISHSURGEON_droidb1medic
+load_mod 2921509625 #BRITISHCANNONEER_droidcannoneer
+
+game_mode ArmyBattlefield
+game_type Hardcore
+lobby_override_game_mode Roleplaying
+max_player_respawns -1
+spawn_immunity_timer 4
+exclusive_modded_uniforms true
+faction_balancing false
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 200
+friendly_fire false
+faction_attacking prussian
+faction_defending british
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+
+#Spawn Override
+spawn_override A ArmyInfantryOfficer 9
+spawn_override A ArmyLineInfantry 199
+spawn_override A Grenadier 9
+spawn_override A Guard 9
+spawn_override A Surgeon 9
+spawn_override A Cannoneer 4
+spawn_override B ArmyInfantryOfficer 9
+spawn_override B ArmyLineInfantry 199
+spawn_override B Grenadier 9
+spawn_override B Guard 9
+spawn_override B Surgeon 9
+spawn_override B Cannoneer 4
+
+starting_weapons_selection_override British ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override Prussian ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override British ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override Prussian Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override British Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Cannoneer 9 9 WW1_RifleUnbayonetted WW1_ExplosiveGrenade
+starting_weapons_selection_override Prussian Cannoneer 9 9 WW1_RifleUnbayonetted WW1_ExplosiveGrenade
+
+#Round Start Automated Commands
+rc set allowFiring true
+rc set characterRespawntime 3
+rc set characterVehicleRespawnTime 3
+rc set cannonMoverSpeedMultiplier 2
+rc set cannonMoverRotationMultiplier 2
+rc set rocketMoverSpeedMultiplier 2
+rc set rocketMoverRotationMultiplier 2
+rc set allowPreviewAnimations true
+rc set characterFallDamageEnabled true
+rc set characterInfiniteFirearmAmmo true
+rc set drawFirearmTrajectories false
+class_system_orders false
+class_system_orders_reinforce false
+
+
+#Timed Automated Commands
+rc delayed 799 set characterRunSpeed 0.1
+rc delayed 799 set characterWalkSpeed 0.1
+rc delayed 799 set characterJumpForce 0.1
+rc delayed 799 set characterRespawnTime 3
+rc delayed 790 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 780 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 770 broadcast RAID ON THE JEDI TEMPLE - 21 BBY
+rc delayed 765 broadcast Troops are finishing dropping. Prepare for imminent combat.
+rc delayed 761 broadcast Troop deployment completing. Prepare for battle in 3...
+rc delayed 759 broadcast Troop deployment completing. Prepare for battle in 2...
+rc delayed 757 broadcast Troop deployment completing. Prepare for battle in 1...
+rc delayed 755 broadcast ENGAGE ENGAGE ENGAGE
+rc delayed 755 set characterRunSpeed 1.6
+rc delayed 755 set characterWalkSpeed 1.6
+rc delayed 755 set characterJumpForce 1.2
+rc delayed 751 broadcast We've just gotten word that bounty hunter Cad Bane is trying to steal a holocron from the Jedi Vault. We only have a handful of troops here, and the enemy has already taken much over much of the temple. Drive them out!
+rc delayed 15 broadcast This battle is too close to call anything but a pyrrhic victory. Let's regroup and hit them again.
+rc delayed 10 broadcast Prepare for extraction. Ships landing. Extracting in 3...
+rc delayed 8 broadcast Prepare for extraction. Ships landing. Extracting in 2...
+rc delayed 6 broadcast Prepare for extraction. Ships landing. Extracting in 1...
+rc delayed 3 broadcast All troops aboard. Heading to hyperspace.
+!map_rotation end
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+
+#Rotation 5 = 2951508587 #Kamino
+!map_rotation start
+map_name modmap
+load_mod 2951508587 #Kamino
+nature_preset Forest_Storm
+round_time_minutes 10
+reinforcements_per_faction 200
+round_spawn_close_timer_seconds 999
+rc set characterWeaponDamageScale 0.3
+rc set ragdollForceMultiplier 7
+rc set characterMeleeHitOpponentStunTime 0
+rc set characterMeleeInterruptedStunTime 0
+
+; load_mod_server_only 2869563407 #CHPM
+; mod_variable_local CHPM:chpm_class_override:ATTACK,ArmyInfantryOfficer,-250
+; mod_variable_local CHPM:chpm_class_override:DEFEND,ArmyInfantryOfficer,-250
+
+#load_mod 2966553638 #REPUBLICvsCISmod
+load_mod 2925911456 #devnewsound
+
+#load_mod 3473793727 #PRUSSIANOFFICER_obiwan
+#load_mod 3473805319 #PRUSSIANOFFICER_anakin
+load_mod 2127040994 #PRUSSIANLINE_212thclonetrooperorange
+load_mod 2127382008 #PRUSSIANLINE_501stattack
+load_mod 2131614973 #PRUSSIANCANNONEER_clonearty
+load_mod 2142745885 #PRUSSIANSURGEON_clonesurgeon
+
+#load_mod 3472790526 #BRITISHOFFICER_darthjarjar
+#load_mod 2127953719 #BRITISHOFFICER_darthmaul
+#load_mod 2936371581 #BRITISHOFFICER_dookubritish
+load_mod 2922595573 #BRITISHLINE_droidb1
+load_mod 2922574168 #BRITISHGRENADIER_commandodroid
+load_mod 2924355024 #BRITISHSURGEON_droidb1medic
+load_mod 2921509625 #BRITISHCANNONEER_droidcannoneer
+
+game_mode ArmyConquest
+game_type Hardcore
+lobby_override_game_mode Roleplaying
+max_player_respawns -1
+spawn_immunity_timer 4
+exclusive_modded_uniforms true
+faction_balancing false
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 200
+friendly_fire false
+faction_attacking prussian
+faction_defending british
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+
+#Spawn Override
+spawn_override M ArmyInfantryOfficer 9
+spawn_override M ArmyLineInfantry 199
+spawn_override M Surgeon 9
+spawn_override M Cannoneer 6
+
+spawn_override L ArmyInfantryOfficer 9
+spawn_override L ArmyLineInfantry 199
+spawn_override L Grenadier 9
+spawn_override L Surgeon 9
+spawn_override L Cannoneer 6
+
+spawn_override A ArmyInfantryOfficer 1
+spawn_override A ArmyLineInfantry 4
+spawn_override B ArmyInfantryOfficer 1
+spawn_override B ArmyLineInfantry 4
+spawn_override C ArmyInfantryOfficer 1
+spawn_override C ArmyLineInfantry 4
+spawn_override D ArmyInfantryOfficer 1
+spawn_override D ArmyLineInfantry 4
+spawn_override E ArmyInfantryOfficer 1
+spawn_override E ArmyLineInfantry 4
+spawn_override F ArmyInfantryOfficer 1
+spawn_override F ArmyLineInfantry 4
+spawn_override G ArmyInfantryOfficer 1
+spawn_override G ArmyLineInfantry 4
+spawn_override H ArmyInfantryOfficer 1
+spawn_override H ArmyLineInfantry 4
+spawn_override I ArmyInfantryOfficer 1
+spawn_override I ArmyLineInfantry 4
+spawn_override J ArmyInfantryOfficer 1
+spawn_override J ArmyLineInfantry 4
+spawn_override K ArmyInfantryOfficer 1
+spawn_override K ArmyLineInfantry 4
+
+starting_weapons_selection_override British ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override Prussian ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override British ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override Prussian Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override British Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Cannoneer 9 9 WW1_RifleUnbayonetted WW1_ExplosiveGrenade
+starting_weapons_selection_override Prussian Cannoneer 9 9 WW1_RifleUnbayonetted WW1_ExplosiveGrenade
+
+#Round Start Automated Commands
+rc set allowFiring true
+rc set characterRespawntime 3
+rc set characterVehicleRespawnTime 3
+rc set cannonMoverSpeedMultiplier 2
+rc set cannonMoverRotationMultiplier 2
+rc set rocketMoverSpeedMultiplier 2
+rc set rocketMoverRotationMultiplier 2
+rc set allowPreviewAnimations true
+rc set characterFallDamageEnabled false
+rc set characterInfiniteFirearmAmmo true
+rc set drawFirearmTrajectories false
+class_system_orders false
+class_system_orders_reinforce false
+
+
+#Timed Automated Commands
+rc delayed 599 set characterRunSpeed 0.1
+rc delayed 599 set characterWalkSpeed 0.1
+rc delayed 599 set characterJumpForce 0.1
+rc delayed 599 set characterRespawnTime 3
+rc delayed 590 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 580 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 570 broadcast BATTLE OF KAMINO - 21 BBY
+rc delayed 565 broadcast Troops are finishing dropping. Prepare for imminent combat.
+rc delayed 561 broadcast Troop deployment completing. Prepare for battle in 3...
+rc delayed 559 broadcast Troop deployment completing. Prepare for battle in 2...
+rc delayed 557 broadcast Troop deployment completing. Prepare for battle in 1...
+rc delayed 555 broadcast ENGAGE ENGAGE ENGAGE
+rc delayed 555 set characterRunSpeed 1.4
+rc delayed 555 set characterWalkSpeed 1.3
+rc delayed 555 set characterJumpForce 2.1
+rc delayed 551 broadcast General Grievous is assaulting Tipoca City. We need to stop him here or Kamino may be lost altogether.
+rc delayed 10 broadcast Prepare for extraction. Ships landing. Extracting in 3...
+rc delayed 8 broadcast Prepare for extraction. Ships landing. Extracting in 2...
+rc delayed 6 broadcast Prepare for extraction. Ships landing. Extracting in 1...
+rc delayed 3 broadcast All troops aboard. Heading to hyperspace.
+!map_rotation end
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+
+#Rotation 6 = 2950999066 #Theed
+!map_rotation start
+map_name modmap
+load_mod 2950999066 #Theed
+nature_preset Snow_Snowing_Dawn
+round_time_minutes 10
+reinforcements_per_faction 200
+round_spawn_close_timer_seconds 999
+rc set characterWeaponDamageScale 0.3
+rc set ragdollForceMultiplier 7
+rc set characterMeleeHitOpponentStunTime 0
+rc set characterMeleeInterruptedStunTime 0
+
+#load_mod_server_only 2869563407 #CHPM
+#mod_variable_local CHPM:chpm_class_override:ATTACK,ArmyInfantryOfficer,-250
+#mod_variable_local CHPM:chpm_class_override:DEFEND,ArmyInfantryOfficer,-250
+
+#load_mod 2966553638 #REPUBLICvsCISmod
+load_mod 2925911456 #devnewsound
+
+load_mod 3473793727 #PRUSSIANOFFICER_obiwan
+load_mod 3473805319 #PRUSSIANOFFICER_anakin
+load_mod 2127040994 #PRUSSIANLINE_212thclonetrooperorange
+load_mod 2127382008 #PRUSSIANLINE_501stattack
+load_mod 2131614973 #PRUSSIANCANNONEER_clonearty
+load_mod 2142745885 #PRUSSIANSURGEON_clonesurgeon
+
+load_mod 3472790526 #BRITISHOFFICER_darthjarjar
+load_mod 2922595573 #BRITISHLINE_droidb1
+load_mod 2922574168 #BRITISHGRENADIER_commandodroid
+load_mod 2924355024 #BRITISHSURGEON_droidb1medic
+load_mod 2921509625 #BRITISHCANNONEER_droidcannoneer
+
+game_mode ArmyBattlefield
+game_type Hardcore
+lobby_override_game_mode Roleplaying
+max_player_respawns -1
+spawn_immunity_timer 4
+exclusive_modded_uniforms true
+faction_balancing false
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 200
+friendly_fire false
+faction_attacking prussian
+faction_defending british
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+
+#Spawn Override
+spawn_override A ArmyInfantryOfficer 15
+spawn_override A ArmyLineInfantry 199
+spawn_override A Grenadier 9
+spawn_override A Guard 9
+spawn_override A Surgeon 9
+spawn_override A Cannoneer 3
+spawn_override B ArmyInfantryOfficer 99
+spawn_override B ArmyLineInfantry 9
+spawn_override B Grenadier 9
+spawn_override B Guard 9
+spawn_override B Surgeon 9
+spawn_override B Cannoneer 3
+
+starting_weapons_selection_override British ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override Prussian ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override British ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override Prussian Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override British Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Cannoneer 9 9 WW1_RifleUnbayonetted WW1_ExplosiveGrenade
+starting_weapons_selection_override Prussian Cannoneer 9 9 WW1_RifleUnbayonetted WW1_ExplosiveGrenade
+
+#Round Start Automated Commands
+rc set allowFiring true
+rc set characterRespawntime 3
+rc set characterVehicleRespawnTime 3
+rc set cannonMoverSpeedMultiplier 2
+rc set cannonMoverRotationMultiplier 2
+rc set rocketMoverSpeedMultiplier 2
+rc set rocketMoverRotationMultiplier 2
+rc set allowPreviewAnimations true
+rc set characterFallDamageEnabled false
+rc set characterInfiniteFirearmAmmo true
+rc set drawFirearmTrajectories false
+class_system_orders false
+class_system_orders_reinforce false
+
+
+#Timed Automated Commands
+rc delayed 599 set characterRunSpeed 0.1
+rc delayed 599 set characterWalkSpeed 0.1
+rc delayed 599 set characterJumpForce 0.1
+rc delayed 599 set characterRespawnTime 3
+rc delayed 590 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 580 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 570 broadcast SKIRMISH ON NABOO - 20 BBY
+rc delayed 565 broadcast Troops are finishing dropping. Prepare for imminent combat.
+rc delayed 561 broadcast Troop deployment completing. Prepare for battle in 3...
+rc delayed 559 broadcast Troop deployment completing. Prepare for battle in 2...
+rc delayed 557 broadcast Troop deployment completing. Prepare for battle in 1...
+rc delayed 555 broadcast ENGAGE ENGAGE ENGAGE
+rc delayed 555 set characterRunSpeed 1.6
+rc delayed 555 set characterWalkSpeed 1.6
+rc delayed 555 set characterJumpForce 1.6
+rc delayed 551 broadcast Grievous is here, wanting to turn Naboo's shadow force Gungans to the CIS. Some have already joined them. We need to stop the Separatists before they gain any further ground.
+rc delayed 15 broadcast This battle is too close to call anything but a pyrrhic victory. Let's regroup and hit them again.
+rc delayed 10 broadcast Prepare for extraction. Ships landing. Extracting in 3...
+rc delayed 8 broadcast Prepare for extraction. Ships landing. Extracting in 2...
+rc delayed 6 broadcast Prepare for extraction. Ships landing. Extracting in 1...
+rc delayed 3 broadcast All troops aboard. Heading to hyperspace.
+!map_rotation end
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+
+#Rotation 7 = 3027963188 #endor
+!map_rotation start
+map_name modmap
+load_mod 3027963188 #endor
+nature_preset Forest_Storm
+round_time_minutes 10
+reinforcements_per_faction 700 #needsmorebecauseinvasion
+round_spawn_close_timer_seconds 999
+rc set characterWeaponDamageScale 0.5
+rc set ragdollForceMultiplier 8
+rc set characterMeleeHitOpponentStunTime 0
+rc set characterMeleeInterruptedStunTime 0
+
+; load_mod_server_only 2869563407 #CHPM
+; mod_variable_local CHPM:chpm_class_override:ATTACK,ArmyInfantryOfficer,-400
+; mod_variable_local CHPM:chpm_class_override:DEFEND,ArmyInfantryOfficer,-400
+
+load_mod 2925911456 #devnewsound
+
+load_mod 2969727720 #PRUSSIANGREN&GUARD_rebel
+
+#load_mod 2811018063 #BRITISHOFFICER_darthvader
+load_mod 2936482150 #BRITISHGRENADIER_stormtroopergrenadier
+load_mod 2921482346 #BRITISHLINE_stormtrooper
+
+game_mode Invasion
+game_type Hardcore
+lobby_override_game_mode Roleplaying
+max_player_respawns -1
+spawn_immunity_timer 2
+exclusive_modded_uniforms true
+faction_balancing false
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 200
+friendly_fire false
+faction_attacking prussian
+faction_defending british
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+
+#Spawn Override
+
+spawn_override H Grenadier 99
+spawn_override H Guard 99
+
+spawn_override A ArmyInfantryOfficer 1
+spawn_override A ArmyLineInfantry 13
+spawn_override A Grenadier 8
+
+spawn_override B ArmyInfantryOfficer 1
+spawn_override B ArmyLineInfantry 11
+spawn_override B Grenadier 6
+
+spawn_override C ArmyInfantryOfficer 1
+spawn_override C ArmyLineInfantry 9
+spawn_override C Grenadier 4
+
+spawn_override D Grenadier 36 #invasionpoint
+spawn_override E Grenadier 36 #invasionpoint
+spawn_override F Grenadier 36 #invasionpoint
+
+starting_weapons_selection_override Prussian ArmyLineInfantry 9 9 WW1_Revolver
+starting_weapons_selection_override Prussian Grenadier 9 9 WW1_Revolver
+starting_weapons_selection_override Prussian Guard 9 9 WW1_Revolver
+
+starting_weapons_selection_override British ArmyInfantryOfficer 9 9 SwordOfficer
+starting_weapons_selection_override British ArmyLineInfantry 9 9 WW1_Revolver
+starting_weapons_selection_override British Grenadier 9 9 WW1_Revolver
+starting_weapons_selection_override British Guard 9 9 WW1_Revolver
+starting_weapons_selection_override British Surgeon 9 9 WW1_Revolver
+starting_weapons_selection_override British Cannoneer 9 9 WW1_Revolver WW1_ExplosiveGrenade
+
+#Round Start Automated Commands
+rc set allowFiring true
+rc set characterRespawntime 3
+rc set characterVehicleRespawnTime 3
+rc set cannonMoverSpeedMultiplier 2
+rc set cannonMoverRotationMultiplier 2
+rc set rocketMoverSpeedMultiplier 2
+rc set rocketMoverRotationMultiplier 2
+rc set allowPreviewAnimations true
+rc set characterFallDamageEnabled true
+rc set characterInfiniteFirearmAmmo true
+rc set drawFirearmTrajectories false
+class_system_orders false
+class_system_orders_reinforce false
+
+#Timed Automated Commands
+rc delayed 599 set characterRunSpeed 0.1
+rc delayed 599 set characterWalkSpeed 0.1
+rc delayed 599 set characterJumpForce 0.1
+rc delayed 599 set characterRespawnTime 4
+rc delayed 590 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 580 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 570 broadcast BATTLE OF ENDOR - 4 ABY
+rc delayed 565 broadcast Troops are finishing dropping. Prepare for imminent combat.
+rc delayed 561 broadcast Troop deployment completing. Prepare for battle in 3...
+rc delayed 559 broadcast Troop deployment completing. Prepare for battle in 2...
+rc delayed 557 broadcast Troop deployment completing. Prepare for battle in 1...
+rc delayed 555 broadcast ENGAGE ENGAGE ENGAGE
+rc delayed 555 set characterRunSpeed 1.9
+rc delayed 555 set characterWalkSpeed 1.9
+rc delayed 555 set characterJumpForce 1.4
+rc delayed 551 broadcast The Empire's time has come. Let's finish them here, once and for all.
+rc delayed 10 broadcast Prepare for extraction. Ships landing. Extracting in 3...
+rc delayed 8 broadcast Prepare for extraction. Ships landing. Extracting in 2...
+rc delayed 6 broadcast Prepare for extraction. Ships landing. Extracting in 1...
+rc delayed 3 broadcast All troops aboard. Heading to hyperspace.
+
+
+
+!map_rotation end
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+
+#Rotation 8 = 2950403338 #Kashyyyk
+!map_rotation start
+map_name modmap
+load_mod 2950403338 #Kashyyyk
+nature_preset Forest_Rain_Dawn
+round_time_minutes 10
+reinforcements_per_faction 600
+round_spawn_close_timer_seconds 999
+rc set characterWeaponDamageScale 0.3
+rc set ragdollForceMultiplier 7
+rc set characterMeleeHitOpponentStunTime 0
+rc set characterMeleeInterruptedStunTime 0
+
+objects_override Rocket 107.50 9.35 -183.46 0.00 352.10 0.00
+objects_override RocketAmmoboxMoveable 108.26 9.68 -189.27 0.00 352.10 0.00
+
+objects_override Rocket 117.11 9.43 -179.70 0.00 348.25 0.00
+objects_override RocketAmmoboxMoveable 117.96 9.83 -184.03 0.00 348.89 0.00
+
+objects_override Rocket 124.29 9.96 -183.79 0.00 351.77 0.00
+objects_override RocketAmmoboxMoveable 125.02 10.21 -188.90 0.00 351.77 0.00
+
+objects_override Rocket 178.24 8.24 -150.94 0.00 353.59 0.00
+objects_override RocketAmmoboxMoveable 179.00 9.04 -157.69 0.00 354.23 0.00
+
+
+
+objects_override FrontlinesStaticMachineGunAllied 92.82 8.91 -180.48 0.00 2.45 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesStaticMachineGunAllied 95.32 9.31 -180.54 0.00 0.52 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 94.30 8.26 -185.95 0.00 2.45 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 82.45 7.49 -181.25 0.00 1.16 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesStaticMachineGunAllied 85.32 7.83 -180.78 0.00 359.24 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 84.00 6.73 -185.19 0.00 3.08 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 169.41 9.14 -150.66 0.00 357.95 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesStaticMachineGunAllied 173.49 9.20 -150.86 0.00 358.91 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 171.59 8.72 -156.94 0.00 359.82 0.00 FrontlinesMachineGunAmmobox
+
+objects_override InfantrySpikes 139.09 14.90 -97.29 0.00 119.43 0.00
+objects_override InfantrySpikes 139.09 14.90 -97.29 0.00 304.55 0.00
+objects_override InfantrySpikes 143.22 14.90 -90.71 0.00 30.36 0.00
+objects_override InfantrySpikes 144.07 15.12 -89.60 0.00 119.55 0.00
+objects_override InfantrySpikes 148.20 14.90 -81.77 0.00 32.60 0.00
+objects_override InfantrySpikes 148.20 14.90 -81.77 0.00 214.83 0.00
+objects_override InfantrySpikes 143.11 15.02 -90.92 0.00 210.26 0.00
+objects_override InfantrySpikes 143.11 15.02 -90.92 0.00 305.86 0.00
+objects_override InfantrySpikes 146.21 14.90 -85.91 0.00 102.11 0.00
+objects_override InfantrySpikes 146.21 14.90 -85.91 0.00 193.22 0.00
+objects_override InfantrySpikes 146.21 14.90 -85.91 0.00 288.83 0.00
+
+
+objects_override InfantrySpikes 161.60 0.06 -18.95 0.00 157.53 0.00
+objects_override InfantrySpikes 147.75 -0.02 -30.76 0.00 164.90 0.00
+objects_override InfantrySpikes 125.75 -0.02 -38.43 0.00 152.04 0.00
+objects_override InfantrySpikes 105.93 -0.02 -48.58 0.00 158.49 0.00
+objects_override ChevauxDeFriseSmall 105.93 -0.02 -48.58 0.00 158.49 0.00
+objects_override ChevauxDeFriseSmall 92.54 -0.02 -53.48 0.00 146.61 0.00
+objects_override InfantrySpikes 81.65 -0.02 -53.20 0.00 157.84 0.00
+objects_override InfantrySpikes 65.65 -0.02 -48.73 0.00 153.51 0.00
+
+objects_override InfantrySpikes 65.49 0.04 -48.57 0.00 8.15 0.00
+objects_override InfantrySpikes 81.41 -0.02 -53.42 0.00 311.47 0.00
+objects_override InfantrySpikes 91.90 -0.02 -54.11 0.00 296.60 0.00
+objects_override ChevauxDeFriseSmall 91.90 -0.02 -54.11 0.00 296.60 0.00
+objects_override InfantrySpikes 105.29 -0.02 -48.55 0.00 310.46 0.00
+objects_override ChevauxDeFriseSmall 124.91 -0.02 -38.74 0.00 348.38 0.00
+objects_override InfantrySpikes 147.58 -0.02 -31.14 0.00 341.72 0.00
+objects_override InfantrySpikes 161.10 0.06 -19.52 0.00 331.69 0.00
+
+objects_override ChevauxDeFriseSmall 157.57 14.90 -29.25 0.00 318.09 0.00
+objects_override InfantrySpikes 157.57 14.90 -29.25 0.00 42.79 0.00
+objects_override InfantrySpikes 158.33 14.90 -29.71 0.00 131.34 0.00
+objects_override InfantrySpikes 158.67 14.90 -30.93 0.00 182.99 0.00
+objects_override InfantrySpikes 157.36 14.90 -31.43 0.00 254.80 0.00
+objects_override ChevauxDeFriseSmall 157.36 14.90 -31.43 0.00 254.80 0.00
+objects_override InfantrySpikes 156.79 14.90 -30.53 0.00 328.01 0.00
+objects_override InfantrySpikes 157.88 14.90 -29.65 0.00 6.13 0.00
+
+objects_override InfantrySpikes 157.34 14.90 -43.60 0.00 339.42 0.00
+objects_override InfantrySpikes 157.78 14.90 -43.70 0.00 13.11 0.00
+objects_override InfantrySpikes 158.62 14.90 -43.63 0.00 51.93 0.00
+objects_override InfantrySpikes 158.28 14.90 -44.06 0.00 130.85 0.00
+objects_override InfantrySpikes 158.28 14.90 -44.06 0.00 219.72 0.00
+objects_override ChevauxDeFriseSmall 157.34 14.90 -45.53 0.00 3.13 0.00
+objects_override InfantrySpikes 158.37 14.90 -44.68 0.00 36.18 0.00
+objects_override ChevauxDeFriseSmall 158.37 14.90 -44.68 0.00 36.18 0.00
+
+objects_override InfantrySpikes 156.89 14.90 -37.23 0.00 12.45 0.00
+objects_override ChevauxDeFriseSmall 157.37 14.90 -36.64 0.00 43.57 0.00
+objects_override InfantrySpikes 159.57 14.90 -37.12 0.00 52.88 0.00
+objects_override InfantrySpikes 159.06 14.90 -37.94 0.00 163.24 0.00
+objects_override InfantrySpikes 158.53 14.90 -38.66 0.00 218.74 0.00
+objects_override InfantrySpikes 157.73 14.90 -37.90 0.00 21.08 0.00
+objects_override InfantrySpikes 157.83 14.90 -38.67 0.00 86.85 0.00
+objects_override ChevauxDeFriseSmall 157.83 14.90 -38.67 0.00 86.85 0.00
+
+objects_override InfantrySpikes 157.97 14.90 -33.77 0.00 261.52 0.00
+objects_override ChevauxDeFriseSmall 157.97 14.90 -33.77 0.00 294.11 0.00
+objects_override InfantrySpikes 157.97 14.90 -33.77 0.00 294.11 0.00
+objects_override InfantrySpikes 158.06 14.90 -33.26 0.00 16.25 0.00
+objects_override ChevauxDeFriseSmall 158.35 14.90 -33.97 0.00 87.79 0.00
+objects_override InfantrySpikes 158.98 14.90 -34.39 0.00 158.37 0.00
+objects_override InfantrySpikes 157.88 14.90 -34.96 0.00 201.69 0.00
+objects_override InfantrySpikes 157.46 14.90 -33.92 0.00 287.35 0.00
+
+objects_override InfantrySpikes 156.39 14.90 -40.81 0.00 90.67 0.00
+objects_override InfantrySpikes 158.68 14.90 -41.20 0.00 90.67 0.00
+objects_override InfantrySpikes 158.33 14.90 -41.31 0.00 163.18 0.00
+objects_override ChevauxDeFriseSmall 158.58 14.90 -40.86 0.00 28.43 0.00
+objects_override InfantrySpikes 156.92 14.90 -41.43 0.00 312.72 0.00
+objects_override InfantrySpikes 158.33 14.90 -41.37 0.00 262.02 0.00
+objects_override ChevauxDeFriseSmall 158.33 14.90 -41.37 0.00 262.02 0.00
+objects_override InfantrySpikes 159.15 14.90 -40.43 0.00 45.43 0.00
+
+
+objects_override FrontlinesLightHowitzer 92.57 2.51 -0.58 0.00 119.18 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesHowitzerAmmoboxMoveable 87.85 2.14 -4.94 0.00 331.75 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesLightHowitzer 112.78 2.55 1.97 0.00 155.75 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesHowitzerAmmoboxMoveable 116.87 2.42 1.89 0.00 352.61 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesLightHowitzer 66.67 5.77 21.88 0.00 150.75 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesLightHowitzer 56.24 4.96 17.52 0.00 179.75 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesHowitzerAmmoboxMoveable 60.56 4.88 16.76 0.00 350.97 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesLightHowitzer 111.62 6.23 28.91 0.00 141.23 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesLightHowitzer 107.45 6.29 28.59 0.00 187.45 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesHowitzerAmmoboxMoveable 109.73 6.22 28.47 0.00 332.10 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesHeavyHowitzer 77.95 12.67 71.62 0.00 174.88 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable 80.13 12.68 71.39 0.00 342.41 0.00 FrontlinesMortarAmmobox
+
+objects_override FrontlinesHeavyHowitzer 50.73 11.50 63.54 0.00 164.99 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable 54.31 11.66 64.12 0.00 334.06 0.00 FrontlinesMortarAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 174.29 16.45 96.00 0.00 158.81 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 172.52 15.53 93.09 0.00 298.91 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 162.34 13.31 85.76 0.00 145.23 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 164.97 13.61 86.67 0.00 12.40 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 171.29 57.63 59.49 0.00 168.41 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesStaticMachineGunAllied 175.57 56.25 63.38 0.00 172.85 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesStaticMachineGunAllied 169.01 57.35 59.26 0.00 245.99 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesStaticMachineGunAllied 171.08 56.59 62.34 0.00 275.62 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 170.91 57.85 60.26 0.00 214.98 0.00 FrontlinesMachineGunAmmobox
+objects_override FrontlinesMachineGunAmmobox 174.46 57.02 64.37 0.00 217.76 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 33.05 27.79 94.76 0.00 166.44 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 35.48 27.79 95.10 0.00 330.06 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 46.70 27.79 99.55 0.00 103.21 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 46.19 27.79 98.01 0.00 333.24 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 141.94 48.78 154.10 0.00 179.58 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 141.08 46.95 158.93 0.00 41.35 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 105.99 45.63 159.18 0.00 177.52 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 104.69 45.54 161.88 0.00 102.41 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesStaticMachineGunAllied 89.90 48.78 154.07 0.00 177.28 0.00 FrontlinesStaticMachineGunAllied
+objects_override FrontlinesMachineGunAmmobox 89.02 47.32 158.36 0.00 79.96 0.00 FrontlinesMachineGunAmmobox
+
+objects_override FrontlinesHeavyHowitzer 79.95 44.98 158.03 0.00 172.36 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable 83.56 44.99 159.44 0.00 288.18 0.00 FrontlinesMortarAmmobox
+
+objects_override FrontlinesHeavyHowitzer 152.29 44.98 157.97 0.00 173.05 0.00 FrontlinesHeavyHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable 149.14 44.99 158.51 0.00 40.19 0.00 FrontlinesMortarAmmobox
+
+objects_override FrontlinesLightHowitzer 160.89 33.90 113.10 0.00 171.08 0.00 FrontlinesLightHowitzer
+objects_override FrontlinesLightHowitzer 157.02 33.90 112.49 0.00 171.08 0.00 FrontlinesLightHowitzer
+objects_override FrontlinesHowitzerAmmoboxMoveable 158.47 33.98 117.30 0.00 172.36 0.00 FrontlinesMortarAmmobox
+
+
+; load_mod_server_only 2869563407 #CHPM
+; mod_variable_local CHPM:chpm_class_override:ATTACK,ArmyInfantryOfficer,-250
+; mod_variable_local CHPM:chpm_class_override:DEFEND,ArmyInfantryOfficer,-250
+
+#load_mod 2966553638 #REPUBLICvsCISmod
+load_mod 2925911456 #devnewsound
+
+#load_mod 3473793727 #PRUSSIANOFFICER_obiwan
+#load_mod 3473805319 #PRUSSIANOFFICER_anakin
+load_mod 2127040994 #PRUSSIANLINE_212thclonetrooperorange
+load_mod 2127382008 #PRUSSIANLINE_501stattack
+load_mod 2131614973 #PRUSSIANCANNONEER_clonearty
+load_mod 2142745885 #PRUSSIANSURGEON_clonesurgeon
+
+#load_mod 3472790526 #BRITISHOFFICER_darthjarjar
+#load_mod 2127953719 #BRITISHOFFICER_darthmaul
+#load_mod 2936371581 #BRITISHOFFICER_dookubritish
+load_mod 2922595573 #BRITISHLINE_droidb1
+load_mod 2922574168 #BRITISHGRENADIER_commandodroid
+load_mod 2924355024 #BRITISHSURGEON_droidb1medic
+load_mod 2921509625 #BRITISHCANNONEER_droidcannoneer
+
+game_mode ArmySiege
+game_type Hardcore
+lobby_override_game_mode Roleplaying
+max_player_respawns -1
+spawn_immunity_timer 4
+exclusive_modded_uniforms true
+faction_balancing false
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 200
+friendly_fire false
+faction_attacking british
+faction_defending prussian
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+
+#Spawn Override
+spawn_override C ArmyInfantryOfficer 9
+spawn_override C ArmyLineInfantry 199
+spawn_override C Grenadier 9
+spawn_override C Guard 9
+spawn_override C Surgeon 9
+spawn_override C Cannoneer 9
+
+spawn_override A ArmyInfantryOfficer 6
+spawn_override A ArmyLineInfantry 2
+spawn_override A Grenadier 8
+spawn_override A Guard 8
+spawn_override A Surgeon 4
+spawn_override A Cannoneer 12
+spawn_override B ArmyInfantryOfficer 6
+spawn_override B ArmyLineInfantry 32
+spawn_override B Grenadier 8
+spawn_override B Guard 8
+spawn_override B Surgeon 4
+spawn_override B Cannoneer 36
+
+starting_weapons_selection_override British ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override Prussian ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver WW1_ExplosiveGrenade
+starting_weapons_selection_override British ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override Prussian Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override British Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Cannoneer 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Cannoneer 9 9 WW1_RifleUnbayonetted
+
+#Round Start Automated Commands
+rc set allowFiring true
+rc set characterRespawntime 3
+rc set characterVehicleRespawnTime 3
+rc set cannonMoverSpeedMultiplier 2
+rc set cannonMoverRotationMultiplier 2
+rc set rocketMoverSpeedMultiplier 2
+rc set rocketMoverRotationMultiplier 2
+rc set allowPreviewAnimations true
+rc set characterFallDamageEnabled true
+rc set characterInfiniteFirearmAmmo true
+rc set drawFirearmTrajectories false
+class_system_orders false
+class_system_orders_reinforce false
+
+
+#Timed Automated Commands
+rc delayed 599 set characterRunSpeed 0.1
+rc delayed 599 set characterWalkSpeed 0.1
+rc delayed 599 set characterJumpForce 0.1
+rc delayed 599 set characterRespawnTime 3
+rc delayed 590 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 580 broadcast All hold. Troops are dropping. Prepare for engagement.
+rc delayed 570 broadcast BATTLE OF KASHYYYK - 19 BBY
+rc delayed 565 broadcast Troops are finishing dropping. Prepare for imminent combat.
+rc delayed 561 broadcast Troop deployment completing. Prepare for battle in 3...
+rc delayed 559 broadcast Troop deployment completing. Prepare for battle in 2...
+rc delayed 557 broadcast Troop deployment completing. Prepare for battle in 1...
+rc delayed 555 broadcast ENGAGE ENGAGE ENGAGE
+rc delayed 555 set characterRunSpeed 1.9
+rc delayed 555 set characterWalkSpeed 1.9
+rc delayed 555 set characterJumpForce 1.4
+rc delayed 551 broadcast The CIS is hoping to claim the Kashyyyk hyperspace junction for themselves. We are deploying you to this key hot zone to repel the droid attack. Defend it at any cost.
+rc delayed 10 broadcast Prepare for extraction. Ships landing. Extracting in 3...
+rc delayed 8 broadcast Prepare for extraction. Ships landing. Extracting in 2...
+rc delayed 6 broadcast Prepare for extraction. Ships landing. Extracting in 1...
+rc delayed 3 broadcast All troops aboard. Heading to hyperspace.
+!map_rotation end
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+#Rotation 10 = 2940447014 #Iridonia
+!map_rotation start
+map_name modmap
+game_mode ArmySiege
+game_type Hardcore
+deathmatch_max_kills 30
+round_time_minutes 60
+reinforcements_per_faction 200
+faction_balancing false
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 200
+time_hour 10
+time_dynamic false
+nature_preset Forest_Clear_Day
+weather_dynamic false
+faction_attacking prussian
+faction_defending british
+class_system_orders false
+wave_spawn_time_seconds 2
+wave_spawn_vehicle_time_seconds 20
+spawn_immunity_timer 0
+friendly_fire true
+friendly_fire_melee_bounce false
+damage_split 0
+sappers_attacking_starting_materials 1000
+sappers_defending_starting_materials 1000
+sappers_buildlimit explosivebarrel attacking 10
+sappers_buildlimit explosivebarrel defending 10
+sappers_buildlimit palisade attacking 10
+sappers_buildlimit palisade defending 10
+sappers_buildlimit shootingplatform attacking 10
+sappers_buildlimit shootingplatform defending 10
+sappers_buildlimit rocketstack attacking 10
+sappers_buildlimit rocketstack defending 10
+class_system_orders true
+class_system_orders_reinforce attacking
+class_system_orders_reinforce_limit 10
+class_system_orders_reinforce_cooldown 240
+max_accumulated_faction_points -1
+; rc set characterWalkSpeed 12
+; rc set characterFallDamageEnabled false
+; rc nature preset Forest_Clear_Night
+; rc set gunboatCooldownBetweenSpawns 5
+; rc set rowboatSpawnHoldInteractionTime 2
+
+round_spawn_close_timer_seconds 99999
+
+#load_mod 2966553638 #REPUBLICvsCISmod
+load_mod 2925911456 #devnewsound
+load_mod 2519337751 # Star Wars Sound Effects
+load_mod 2753590432 # Star Wars Sounds
+
+load_mod 3473793727 #PRUSSIANOFFICER_obiwan
+load_mod 3473805319 #PRUSSIANOFFICER_anakin
+load_mod 2127040994 #PRUSSIANLINE_212thclonetrooperorange
+load_mod 2127382008 #PRUSSIANLINE_501stattack
+load_mod 2131614973 #PRUSSIANCANNONEER_clonearty
+load_mod 2142745885 #PRUSSIANSURGEON_clonesurgeon
+
+load_mod 3472790526 #BRITISHOFFICER_darthjarjar
+load_mod 2127953719 #BRITISHOFFICER_darthmaul
+load_mod 2811018063 #BRITISHOFFICER_darthvader
+load_mod 2936371581 #BRITISHOFFICER_dookubritish
+load_mod 2922595573 #BRITISHLINE_droidb1
+load_mod 2922574168 #BRITISHGRENADIER_commandodroid
+load_mod 2924355024 #BRITISHSURGEON_droidb1medic
+load_mod 2921509625 #BRITISHCANNONEER_droidcannoneer
+
+load_mod 2936482150 #BRITISHGRENADIER_stormtroopergrenadier
+load_mod 2921482346 #BRITISHLINE_stormtrooper
+load_mod 2969727720 #PRUSSIANGREN&GUARD_rebel
+
+#Spawn Override
+spawn_override A ArmyInfantryOfficer 99
+spawn_override A ArmyLineInfantry 99
+spawn_override A Grenadier 99
+spawn_override A Guard 99
+spawn_override A Surgeon 99
+spawn_override A Cannoneer 99
+spawn_override B ArmyInfantryOfficer 99
+spawn_override B ArmyLineInfantry 99
+spawn_override B Grenadier 99
+spawn_override B Guard 99
+spawn_override B Surgeon 99
+spawn_override B Cannoneer 99
+
+starting_weapons_selection_override British ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override Prussian ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+starting_weapons_selection_override British ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+starting_weapons_selection_override Prussian Grenadier 9 9 WW1_Revolver
+starting_weapons_selection_override British Guard 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Guard 9 9 WW1_Revolver
+starting_weapons_selection_override British Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Surgeon 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override British Cannoneer 9 9 WW1_RifleUnbayonetted
+starting_weapons_selection_override Prussian Cannoneer 9 9 WW1_RifleUnbayonetted
+
+load_mod 2940447014
+
+!map_rotation end
+
+##############################################################################################################################
+##############################################################################################################################
+##############################################################################################################################
+#Rotation 10 = 3056442611 #Malevolence
+
+; !map_rotation start
+; map_name modmap
+; game_mode ArmyConquest
+; game_type Hardcore
+; deathmatch_max_kills 30
+; round_time_minutes 60
+; reinforcements_per_faction 200
+; faction_balancing false
+; allow_faction_switching true
+; allow_spectating true
+; minimum_players -1
+; maximum_players 200
+; time_hour 10
+; time_dynamic false
+; nature_preset Forest_Clear_Day
+; weather_dynamic false
+; faction_attacking prussian
+; faction_defending british
+; class_system_orders false
+; wave_spawn_time_seconds 2
+; wave_spawn_vehicle_time_seconds 20
+; spawn_immunity_timer 0
+; friendly_fire true
+; friendly_fire_melee_bounce false
+; damage_split 0
+; sappers_attacking_starting_materials 1000
+; sappers_defending_starting_materials 1000
+; sappers_buildlimit explosivebarrel attacking 10
+; sappers_buildlimit explosivebarrel defending 10
+; sappers_buildlimit palisade attacking 10
+; sappers_buildlimit palisade defending 10
+; sappers_buildlimit shootingplatform attacking 10
+; sappers_buildlimit shootingplatform defending 10
+; sappers_buildlimit rocketstack attacking 10
+; sappers_buildlimit rocketstack defending 10
+; class_system_orders true
+; class_system_orders_reinforce attacking
+; class_system_orders_reinforce_limit 10
+; class_system_orders_reinforce_cooldown 240
+; max_accumulated_faction_points -1
+; ; rc set characterWalkSpeed 12
+; ; rc set characterFallDamageEnabled false
+; ; rc nature preset Forest_Clear_Day
+; ; rc set gunboatCooldownBetweenSpawns 5
+; ; rc set rowboatSpawnHoldInteractionTime 2
+
+; #Spawn Override
+; ; spawn_override F ArmyInfantryOfficer 99
+; ; spawn_override F ArmyLineInfantry 99
+; ; spawn_override F Grenadier 99
+; ; spawn_override F Guard 99
+; ; spawn_override F Surgeon 99
+; ; spawn_override F Cannoneer 99
+; ; spawn_override H ArmyInfantryOfficer 99
+; ; spawn_override H ArmyLineInfantry 99
+; ; spawn_override H Grenadier 99
+; ; spawn_override H Guard 99
+; ; spawn_override H Surgeon 99
+; ; spawn_override H Cannoneer 99
+; ; spawn_override B ArmyInfantryOfficer 99
+; ; spawn_override B ArmyLineInfantry 99
+; ; spawn_override B Grenadier 99
+; ; spawn_override B Guard 99
+; ; spawn_override B Surgeon 99
+; ; spawn_override B Cannoneer 99
+; ; spawn_override D ArmyInfantryOfficer 99
+; ; spawn_override D ArmyLineInfantry 99
+; ; spawn_override D Grenadier 99
+; ; spawn_override D Guard 99
+; ; spawn_override D Surgeon 99
+; ; spawn_override D Cannoneer 99
+
+; starting_weapons_selection_override British ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+; starting_weapons_selection_override Prussian ArmyInfantryOfficer 9 9 SwordOfficer WW1_Revolver
+; starting_weapons_selection_override British ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+; starting_weapons_selection_override Prussian ArmyLineInfantry 9 9 WW1_RifleUnbayonetted
+; starting_weapons_selection_override British Grenadier 9 9 WW1_RifleUnbayonetted Axe2H
+; starting_weapons_selection_override Prussian Grenadier 9 9 WW1_Revolver
+; starting_weapons_selection_override British Guard 9 9 WW1_RifleUnbayonetted
+; starting_weapons_selection_override Prussian Guard 9 9 WW1_Revolver
+; starting_weapons_selection_override British Surgeon 9 9 WW1_RifleUnbayonetted
+; starting_weapons_selection_override Prussian Surgeon 9 9 WW1_RifleUnbayonetted
+; starting_weapons_selection_override British Cannoneer 9 9 WW1_RifleUnbayonetted
+; starting_weapons_selection_override Prussian Cannoneer 9 9 WW1_RifleUnbayonetted
+
+; load_mod 3056442611
+
+; !map_rotation end

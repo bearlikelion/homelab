@@ -1,0 +1,177 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PANEL",
+    "meta": {
+        "version": "PLCN_v3",
+        "update_url": null
+    },
+    "exported_at": "2026-09-04T00:00:00+00:00",
+    "name": "Citadel: Forged With Fire",
+    "author": "markarneman@gmail.com",
+    "uuid": "3ff9f26e-c92c-5c03-abf4-b12337c13bc0",
+    "description": "Citadel: Forged With Fire is a massive online sandbox RPG set in the mystical world of Ignus. Featuring magic, spellcasting, building, exploring and crafting as you fight to make a name for yourself and achieve notoriety across the land.",
+    "image": null,
+    "tags": [
+        "steamcmd"
+    ],
+    "features": [
+        "steam_disk_space"
+    ],
+    "docker_images": {
+        "Steamcmd Debian": "ghcr.io/parkervcp/steamcmd:debian"
+    },
+    "file_denylist": [],
+    "startup_commands": {
+        "Default": "./CitadelServer.sh"
+    },
+    "config": {
+        "files": "{\r\n    \"Config/Engine.ini\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"Port=\": \"Port={{server.build.default.port}}\"\r\n        }\r\n    },\r\n    \"Config/Game.ini\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"ConnectionPort=\": \"ConnectionPort={{server.build.default.port}}\",\r\n            \"QueryPort=\": \"QueryPort={{server.build.env.QUERY_PORT}}\",\r\n            \"Password=\": \"Password={{server.build.env.ADMIN_PASSWORD}}\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \"Steam Server initialized and registered with UWorks\"\r\n}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\n# steamcmd Base Installation Script\n#\n# Server Files: /mnt/server\n# Image to install with is 'ghcr.io/parkervcp/installers:debian'\n\n## just in case someone removed the defaults.\nif [[ \"${STEAM_USER}\" == \"\" ]] || [[ \"${STEAM_PASS}\" == \"\" ]]; then\n    echo -e \"steam user is not set.\\n\"\n    echo -e \"Using anonymous user.\\n\"\n    STEAM_USER=anonymous\n    STEAM_PASS=\"\"\n    STEAM_AUTH=\"\"\nelse\n    echo -e \"user set to ${STEAM_USER}\"\nfi\n\n## download and install steamcmd\ncd /tmp\nmkdir -p /mnt/server/steamcmd\ncurl -sSL -o steamcmd.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz\ntar -xzvf steamcmd.tar.gz -C /mnt/server/steamcmd\nmkdir -p /mnt/server/steamapps # Fix steamcmd disk write error when this folder is missing\ncd /mnt/server/steamcmd\n\n# SteamCMD fails otherwise for some reason, even running as root.\n# This is changed at the end of the install process anyways.\nchown -R root:root /mnt\nexport HOME=/mnt/server\n\n## install game using steamcmd\n./steamcmd.sh +force_install_dir /mnt/server +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +app_update ${SRCDS_APPID} $( [[ -z ${SRCDS_BETAID} ]] || printf %s \"-beta ${SRCDS_BETAID}\" ) $( [[ -z ${SRCDS_BETAPASS} ]] || printf %s \"-betapassword ${SRCDS_BETAPASS}\" ) ${INSTALL_FLAGS} validate +quit\n\n## set up 32 bit libraries\nmkdir -p /mnt/server/.steam/sdk32\ncp -v linux32/steamclient.so ../.steam/sdk32/steamclient.so\n\n## set up 64 bit libraries\nmkdir -p /mnt/server/.steam/sdk64\ncp -v linux64/steamclient.so ../.steam/sdk64/steamclient.so\n\n## The UWorks plugin loads steamclient.so from its own ThirdParty directory.\nUWORKS=$HOME/Citadel/Plugins/UWorks/Source/ThirdParty/Linux\nmkdir -p $UWORKS\ncp -v linux64/steamclient.so $UWORKS/steamclient.so\n\n## The server rewrites its config on every boot, so both ini files live in one\n## directory at the root and the engine reaches them through a symlink.\nmkdir -p $HOME/Config\nrm -rf $HOME/Citadel/Saved/Config/LinuxServer $HOME/Engine/Saved/Config/LinuxServer\nmkdir -p $HOME/Citadel/Saved/Config $HOME/Engine/Saved/Config $HOME/Citadel/Saved/SaveGames\nln -sf ../../../Config $HOME/Citadel/Saved/Config/LinuxServer\nln -sf ../../../Config $HOME/Engine/Saved/Config/LinuxServer\n\nif [[ ! -f $HOME/Config/Engine.ini ]]; then\ncat <<EOT > $HOME/Config/Engine.ini\n[URL]\nPort=${SERVER_PORT}\nEOT\nfi\n\n## WorldCreationSettings is seeded here and owned by the admin afterwards.\nif [[ ! -f $HOME/Config/Game.ini ]]; then\ncat <<EOT > $HOME/Config/Game.ini\n[UWorks]\nConnectionPort=${SERVER_PORT}\nQueryPort=${QUERY_PORT}\n\n[/Script/Citadel.SocialManager]\nPassword=${ADMIN_PASSWORD}\n\n[/Script/Citadel.CitadelGameInstance]\nWorldCreationSettings=(ServerName=\"${SERVER_NAME}\",Password=\"${SERVER_PASSWORD}\",ServerType=${SERVER_TYPE},PlayerLimit=${MAX_PLAYERS},bPrivate=false,ExperienceMultiplier=1.000000,InventoryCapacityMultipler=1.000000,KnowledgePointEarnedMultiplier=1.000000,CharacterPointEarnedMultiplier=1.000000,bUnlimitedResources=false,PlayerDamageMultiplier=1.000000,ArmorMultiplier=1.000000,BaseManaRegen=1.000000,bInventoryWeightRestrictions=true,MagicFindMultiplier=1.000000,CraftingMagicFindChanceMultiplier=1.000000,FlyingCostMultiplier=1.000000,FlyingSpeedMultiplier=1.000000,ResourceCollectionMultiplier=1.000000,StructureDamageMultiplier=1.000000,bRespectNoBuildZones=true,MagicStructureManaRegenerationMultiplier=1.000000,MagicStructureManaConsumptionMultiplier=0.000000,bFreeBuildMode=false,TimeOfDayLock=Auto,NPCPopulationMultiplier=1.000000,StructureDecayMultiplier=2.000000,bThronesDecay=true)\nEOT\nfi\n\nchmod +x $HOME/CitadelServer.sh\n\n## install end\necho \"-----------------------------------------\"\necho \"Installation completed...\"\necho \"-----------------------------------------\"\n",
+            "container": "ghcr.io/parkervcp/installers:debian",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Server Name",
+            "description": "The name the server is listed under. Seeds WorldCreationSettings on install; after that the line in Config/Game.ini is yours to edit.",
+            "env_variable": "SERVER_NAME",
+            "default_value": "A Citadel Server",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "string",
+                "max:64"
+            ],
+            "sort": 1
+        },
+        {
+            "name": "Server Password",
+            "description": "If set, players must provide this password to join. Seeded into WorldCreationSettings on install.",
+            "env_variable": "SERVER_PASSWORD",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "nullable",
+                "string",
+                "max:64"
+            ],
+            "sort": 2
+        },
+        {
+            "name": "Admin Password",
+            "description": "In-game admin password. Rewritten into Config/Game.ini on every boot.",
+            "env_variable": "ADMIN_PASSWORD",
+            "default_value": "ChangeMe",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "string",
+                "max:64"
+            ],
+            "sort": 3
+        },
+        {
+            "name": "Server Type",
+            "description": "PVP or PVE. Seeded into WorldCreationSettings on install.",
+            "env_variable": "SERVER_TYPE",
+            "default_value": "PVP",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "string",
+                "in:PVP,PVE"
+            ],
+            "sort": 4
+        },
+        {
+            "name": "Max Players",
+            "description": "Player cap. Seeded into WorldCreationSettings on install.",
+            "env_variable": "MAX_PLAYERS",
+            "default_value": "40",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "numeric",
+                "between:1,100"
+            ],
+            "sort": 5
+        },
+        {
+            "name": "Query Port",
+            "description": "Steam query port, used by the server browser. Needs its own allocation and cannot equal the game port.",
+            "env_variable": "QUERY_PORT",
+            "default_value": "27015",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "numeric",
+                "between:1024,65535"
+            ],
+            "sort": 6
+        },
+        {
+            "name": "App ID",
+            "description": "Steam app ID of the Citadel: Forged With Fire dedicated server. Do not change.",
+            "env_variable": "SRCDS_APPID",
+            "default_value": "489650",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "required",
+                "string",
+                "in:489650"
+            ],
+            "sort": 7
+        },
+        {
+            "name": "Auto Update",
+            "description": "Update the server through SteamCMD on every boot.",
+            "env_variable": "AUTO_UPDATE",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "boolean"
+            ],
+            "sort": 8
+        },
+        {
+            "name": "Beta ID",
+            "description": "Beta branch of the steam app. Leave blank to install the normal branch.",
+            "env_variable": "SRCDS_BETAID",
+            "default_value": "",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "nullable",
+                "string"
+            ],
+            "sort": 9
+        },
+        {
+            "name": "Beta Password",
+            "description": "Password for a beta branch, should one require it. Leave blank for no password.",
+            "env_variable": "SRCDS_BETAPASS",
+            "default_value": "",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "nullable",
+                "string"
+            ],
+            "sort": 10
+        }
+    ]
+}

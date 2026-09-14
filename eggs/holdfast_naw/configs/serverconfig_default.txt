@@ -1,0 +1,48 @@
+### Server Details
+
+server_name My Server
+server_region europe #
+server_admin_password CHANGEME
+server_password
+
+server_port 20100
+steam_query_port 27000
+
+server_welcome_message The Server Welcome Message
+
+server_intro_title Welcome!
+server_intro_body This is a server fresh of the assembly line
+
+network_broadcast_mode Standard
+
+### Map Rotations
+
+!map_rotation start
+map_name PalisadeArena
+game_mode ArmyBattlefield
+round_time_minutes -1
+faction_balancing false
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 150
+time_hour 15
+time_dynamic false
+weather_preset calm
+weather_dynamic false
+!map_rotation end
+
+!map_rotation start
+map_name SnowyPlains
+game_mode ArmyBattlefield
+round_time_minutes -1
+faction_balancing false
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 150
+time_hour 15
+time_dynamic false
+weather_preset calm
+weather_dynamic false
+!map_rotation end

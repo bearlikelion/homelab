@@ -1,0 +1,78 @@
+### Server Details
+server_name 52. Valriegen Training server
+server_region usa #
+server_admin_password CHANGEME
+server_password
+
+server_port 20100
+steam_query_port 27000
+
+server_welcome_message hosted by CarinaMachina
+
+server_intro_title Happy Holdfast Update! 
+server_intro_body Holdfast Update, new map: Empire. Brought to you by CarinaMachina
+
+network_broadcast_mode Balanced
+
+mods_installed 3151385653 # Valriegen Kastellet
+
+# Map Voting
+# map_voting_enabled false
+# map_voting_duration 15
+# map_voting_allow_same_map true
+# map_voting_history_count 2
+# map_voting_gameplay_modes ArmySiege ArmyBattlefield
+# map_voting_log_file_path logs_output/mapvotinglogs.txt
+
+####################
+# Map Rotations
+####################
+
+!map_rotation start
+map_name ModMap
+game_mode ArmyBattlefield
+game_type Hardcore
+round_time_minutes 0
+reinforcements_per_faction 570
+wave_spawn_time_seconds 10
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+spawn_immunity_timer 5
+max_player_respawns -1
+faction_balancing true
+faction_balancing_discrepancy_amount 8
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+minimum_players -1
+maximum_players 150
+nature_preset none
+faction_attacking british
+faction_defending french
+# faction_randomiser none
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+sappers_attacking_starting_materials 100
+sappers_defending_starting_materials 100
+sappers_buildlimit explosivebarrel attacking 3
+sappers_buildlimit explosivebarrel defending 3
+sappers_buildlimit palisade attacking 3
+sappers_buildlimit palisade defending 3
+sappers_buildlimit shootingplatform attacking 3
+sappers_buildlimit shootingplatform defending 3
+sappers_buildlimit rocketstack attacking 4
+sappers_buildlimit rocketstack defending 4
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 240
+population_verylow_playable false
+population_low_playable false
+population_medium_playable true
+population_high_playable true
+max_accumulated_faction_points -1
+
+load_mod 3151385653 # Valriegen Kastellet
+
+!map_rotation end

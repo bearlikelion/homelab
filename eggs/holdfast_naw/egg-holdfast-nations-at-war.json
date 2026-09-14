@@ -1,0 +1,163 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PANEL",
+    "meta": {
+        "version": "PLCN_v3",
+        "update_url": null
+    },
+    "exported_at": "2026-09-09T00:00:00+00:00",
+    "name": "Holdfast: Nations At War",
+    "author": "markarneman@gmail.com",
+    "uuid": "85e985a4-8993-50bf-b6a2-e8f7eadfda7f",
+    "description": "Holdfast: Nations At War is a multiplayer first and third person shooter set during the Napoleonic Wars, featuring line battles, naval combat and siege modes.",
+    "image": null,
+    "tags": [
+        "steamcmd"
+    ],
+    "features": [
+        "steam_disk_space"
+    ],
+    "docker_images": {
+        "Steamcmd Debian": "ghcr.io/parkervcp/steamcmd:debian"
+    },
+    "file_denylist": [],
+    "startup_commands": {
+        "Default": "tail -n0 -F logs_output/output_{{SERVER_CONFIG}} & \"./Holdfast NaW\" -startserver -batchmode -nographics -screen-width 320 -screen-height 240 -screen-quality Fastest --serverheadless -serverConfigFilePath configs/{{SERVER_CONFIG}} -logFile logs_output/output_{{SERVER_CONFIG}} -logArchivesDirectory logs_archive/ -adminCommandsLogFilePath logs_adminactions/admin_{{SERVER_CONFIG}} -playersLogFilePath logs_playerlogin/players_{{SERVER_CONFIG}} -scoreboardLogFilePath logs_score/score_{{SERVER_CONFIG}} -chatLogFilePath logs_chat/chat_{{SERVER_CONFIG}} -vacLogFilePath logs_vac/vac_{{SERVER_CONFIG}} -workshopDataPath workshop -micSpammersPlayersFilePath micspammers.txt -mutedVoipPlayersFilePath muteplayersvoip.txt -mutedChatPlayersFilePath muteplayerschat.txt -bannedPlayersFilePath bannedplayers.txt"
+    },
+    "config": {
+        "files": "{\n    \"configs/{{SERVER_CONFIG}}\": {\n        \"parser\": \"file\",\n        \"find\": {\n            \"server_port\": \"server_port {{server.build.default.port}}\",\n            \"steam_query_port\": \"steam_query_port {{server.build.env.QUERY_PORT}}\",\n            \"server_admin_password\": \"server_admin_password {{server.build.env.ADMIN_PASSWORD}}\",\n            \"server_password\": \"server_password {{server.build.env.SERVER_PASSWORD}}\"\n        }\n    }\n}",
+        "startup": "{\n    \"done\": \"Finished loading map\"\n}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\n# steamcmd Base Installation Script\n#\n# Server Files: /mnt/server\n# Image to install with is 'ghcr.io/parkervcp/installers:debian'\n\n## just in case someone removed the defaults.\nif [[ \"${STEAM_USER}\" == \"\" ]] || [[ \"${STEAM_PASS}\" == \"\" ]]; then\n    echo -e \"steam user is not set.\\n\"\n    echo -e \"Using anonymous user.\\n\"\n    STEAM_USER=anonymous\n    STEAM_PASS=\"\"\n    STEAM_AUTH=\"\"\nelse\n    echo -e \"user set to ${STEAM_USER}\"\nfi\n\n## download and install steamcmd\ncd /tmp\nmkdir -p /mnt/server/steamcmd\ncurl -sSL -o steamcmd.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz\ntar -xzvf steamcmd.tar.gz -C /mnt/server/steamcmd\nmkdir -p /mnt/server/steamapps # Fix steamcmd disk write error when this folder is missing\ncd /mnt/server/steamcmd\n\n# SteamCMD fails otherwise for some reason, even running as root.\n# This is changed at the end of the install process anyways.\nchown -R root:root /mnt\nexport HOME=/mnt/server\n\n## SteamCMD exits 0 even when it downloaded nothing, so the binary is what decides.\nfor attempt in 1 2 3; do\n    ./steamcmd.sh +force_install_dir /mnt/server +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +app_update ${SRCDS_APPID} $( [[ -z ${SRCDS_BETAID} ]] || printf %s \"-beta ${SRCDS_BETAID}\" ) $( [[ -z ${SRCDS_BETAPASS} ]] || printf %s \"-betapassword ${SRCDS_BETAPASS}\" ) ${INSTALL_FLAGS} validate +quit\n    [[ -f \"/mnt/server/Holdfast NaW\" ]] && break\n    echo \"attempt ${attempt} left no server binary, retrying\"\ndone\n\nif [[ ! -f \"/mnt/server/Holdfast NaW\" ]]; then\n    echo \"-----------------------------------------\"\n    echo \"Holdfast NaW is missing after three tries.\"\n    echo \"Check the disk limit; the install needs 11 GiB.\"\n    echo \"-----------------------------------------\"\n    exit 1\nfi\n\n## set up 32 bit libraries\nmkdir -p /mnt/server/.steam/sdk32\ncp -v linux32/steamclient.so ../.steam/sdk32/steamclient.so\n\n## The Steam API loads this one by absolute path; without it the server never lists.\nmkdir -p /mnt/server/.steam/sdk64\ncp -v linux64/steamclient.so ../.steam/sdk64/steamclient.so\n\ncd /mnt/server\nmkdir -p configs workshop logs_output logs_archive logs_adminactions logs_chat logs_playerlogin logs_score logs_vac\n\n## Configs live here rather than the root, where a game update would overwrite them.\nfor file in serverconfig_default.txt serverconfig_frontlines_default.txt serverconfig_aly.txt serverconfig_empire.txt serverconfig_odlaw.txt serverconfig_zombies.txt StarWarsEvent.txt; do\n    [[ -f configs/${file} ]] && continue\n    curl -sSLf -o configs/${file} \"${CONFIG_REPO_URL}/${file}\" || rm -f configs/${file}\ndone\n\n## A server with no config cannot boot, so fall back to what the game ships.\nif [[ -z \"$(ls -A configs)\" ]]; then\n    echo \"no configs fetched from ${CONFIG_REPO_URL}, seeding the stock pair\"\n    cp serverconfig_default.txt serverconfig_frontlines_default.txt configs/\nfi\n\n[[ -f bannedplayers.txt ]] || curl -sSLf -o bannedplayers.txt \"${CONFIG_REPO_URL}/bannedplayers.txt\"\n\n## The server sets a file monitor on each of these at boot.\nfor file in bannedplayers.txt bannedmachines.txt bannednames.txt muteplayerschat.txt muteplayersvoip.txt micspammers.txt serverAdmins.txt serverVIPs.txt; do\n    [[ -f ${file} ]] || touch ${file}\ndone\n\n## install end\necho \"-----------------------------------------\"\necho \"Installation completed...\"\necho \"-----------------------------------------\"\n",
+            "container": "ghcr.io/parkervcp/installers:debian",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Config File",
+            "description": "Which file in configs/ the server loads. The panel writes the ports and both passwords into it on every boot; everything else in it is yours.",
+            "env_variable": "SERVER_CONFIG",
+            "default_value": "serverconfig_default.txt",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "string",
+                "max:200"
+            ],
+            "sort": 1
+        },
+        {
+            "name": "Admin Password",
+            "description": "In-game admin login (F1). Rewritten into the chosen config on every boot.",
+            "env_variable": "ADMIN_PASSWORD",
+            "default_value": "ChangeMe",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "string",
+                "max:64"
+            ],
+            "sort": 2
+        },
+        {
+            "name": "Server Password",
+            "description": "Join password. Leave blank for a public server.",
+            "env_variable": "SERVER_PASSWORD",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "nullable",
+                "string",
+                "max:64"
+            ],
+            "sort": 3
+        },
+        {
+            "name": "Query Port",
+            "description": "Steam query port, which is what puts the server in the browser. Needs its own allocation and cannot equal the game port.",
+            "env_variable": "QUERY_PORT",
+            "default_value": "27000",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "required",
+                "numeric",
+                "between:1024,65535"
+            ],
+            "sort": 4
+        },
+        {
+            "name": "Config Source",
+            "description": "Where the install script fetches the config set from. Files already in configs/ are left alone.",
+            "env_variable": "CONFIG_REPO_URL",
+            "default_value": "https://raw.githubusercontent.com/bearlikelion/homelab/main/eggs/holdfast_naw/configs",
+            "user_viewable": true,
+            "user_editable": false,
+            "rules": [
+                "required",
+                "string",
+                "max:200"
+            ],
+            "sort": 5
+        },
+        {
+            "name": "App ID",
+            "description": "Steam app ID of the Holdfast: Nations At War dedicated server. Do not change.",
+            "env_variable": "SRCDS_APPID",
+            "default_value": "1424230",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "required",
+                "string",
+                "in:1424230"
+            ],
+            "sort": 6
+        },
+        {
+            "name": "Auto Update",
+            "description": "Update the server through SteamCMD on every boot.",
+            "env_variable": "AUTO_UPDATE",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": [
+                "boolean"
+            ],
+            "sort": 7
+        },
+        {
+            "name": "Beta ID",
+            "description": "Beta branch of the steam app. Leave blank to install the normal branch.",
+            "env_variable": "SRCDS_BETAID",
+            "default_value": "",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "nullable",
+                "string"
+            ],
+            "sort": 8
+        },
+        {
+            "name": "Beta Password",
+            "description": "Password for a beta branch, should one require it. Leave blank for no password.",
+            "env_variable": "SRCDS_BETAPASS",
+            "default_value": "",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": [
+                "nullable",
+                "string"
+            ],
+            "sort": 9
+        }
+    ]
+}

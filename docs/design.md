@@ -40,6 +40,8 @@ Nothing has to be installed by hand.
 
 Step 3 is not optional.
 The server has no access to a design on its own; it drives one through a plugin running in that browser tab, over `/mcp/ws`, so the tab has to stay open while the client works.
+The MCP button is the last item in the workspace toolbar, below the plugins puzzle icon, and it appears only once the switch is on and the key is valid.
+Only one tab may hold the connection; connecting in a second tab disconnects the first.
 
 Do not add the plugin through the plugin manager by URL.
 Loaded that way it has no key, and the server closes the socket with `Missing userToken parameter`.

@@ -1,0 +1,754 @@
+### Server Details
+server_name Zombie Halloween Event hosted by CarinaMachina
+server_region usa #
+server_admin_password CHANGEME
+server_password
+
+server_port 20100
+steam_query_port 27000
+
+server_welcome_message Defenders have 1 mortal life & the zombies are attacking! If you die defending you must manually switch factions to continue playing as an Attacker. Dont touch the weapons rack! Its bugged!
+
+server_intro_title Happy Holdfast Halloween! 
+server_intro_body Welcome to Holdfast Zombie Halloween Event, brought to you by CarinaMachina and JacobT376. No toxicity or harassment, please contact CarinaMachina with any issues. <br <br Defenders have 1 mortal life & the zombies are attacking! If you die defending you must manually switch factions to continue playing as an Attacker. Dont touch the weapons rack! Its bugged!
+
+network_broadcast_mode Balanced
+
+# Map Voting
+map_voting_enabled true
+map_voting_duration 15
+map_voting_allow_same_map false
+map_voting_history_count 2
+map_voting_gameplay_modes ArmySiege ArmySiege
+map_voting_log_file_path logs_output/mapvotinglogs.txt
+
+# Global RC Commands
+rc set vehicleHorseForAll true # Horses for all
+rc set characterInfiniteFirearmAmmo true # Infinite Ammo
+rc set allowPreviewAnimations true # Extra emotes / dances
+
+# INSTALLED MODIFICATIONS
+# - MAPS
+mods_installed 2796559831 # Last Bastion
+mods_installed 2870627774 # Zombie Sounds
+# mods_installed 2639239649 # Ghostly Woods
+
+# Capture
+conquest_stealthcap_reqplayers_verylow 0
+conquest_stealthcap_reqplayers_low 2
+conquest_stealthcap_reqplayers_medium 3
+conquest_stealthcap_reqplayers_high 4
+
+# # Weapon Overrides - Frontlines - Central = Zombies
+# starting_weapons_selection_override Central ArmyInfantryOfficer 0 1 Sword
+# starting_weapons_selection_override Central ArmyLineInfantry 0 1 Sword
+# starting_weapons_selection_override Central Surgeon 0 1 Sword
+# starting_weapons_selection_override Central Sapper 0 1 Sword
+# starting_weapons_selection_override Central Cannoneer 0 1 Sword
+
+# # Weapon Overrides - NaW - British = Zombies
+# starting_weapons_selection_override British ArmyInfantryOfficer 0 1 Sword
+# starting_weapons_selection_override British ArmyLineInfantry 0 1 Sword
+# starting_weapons_selection_override British Grenadier 0 1 Sword
+# starting_weapons_selection_override British Guard 0 1 Sword
+# starting_weapons_selection_override British LightInfantry 0 1 Sword
+# starting_weapons_selection_override British Rifleman 0 1 Sword
+# starting_weapons_selection_override British FlagBearer 0 1 Sword
+# starting_weapons_selection_override British Musician 0 1 Sword
+# starting_weapons_selection_override British Surgeon 0 1 Sword
+# starting_weapons_selection_override British Sergeant 0 1 Sword
+# starting_weapons_selection_override British Sapper 0 1 Sword
+# starting_weapons_selection_override British Cannoneer 0 1 Sword
+# starting_weapons_selection_override British Rocketeer 0 1 Sword
+# starting_weapons_selection_override British NavalCaptain 0 1 Sword
+# starting_weapons_selection_override British NavalMarine 0 1 Sword
+# starting_weapons_selection_override British NavalSailor 0 1 Sword
+# starting_weapons_selection_override British NavalSailor2 0 1 Sword
+# starting_weapons_selection_override British Carpenter 0 1 Sword
+# starting_weapons_selection_override British CoastGuard 0 1 Sword
+# starting_weapons_selection_override British Customs 0 1 Sword
+# starting_weapons_selection_override British Hussar 0 1 Sword
+# starting_weapons_selection_override British Dragoon 0 1 Sword
+
+# # Zombies Overrides
+# rc set characterRunSpeed 1.5 # Increase run speed 
+# rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+# rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+# rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+# rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# # Bot on both teams
+rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+rc vehiclesSpawn 20 Central
+rc vehiclesSpawn 20 Allied
+
+####################
+# Map Rotations
+####################
+
+# Last Bastion (Offensive)
+!map_rotation start
+map_name ModMap
+game_mode ArmySiege
+game_type hardcore
+frontlines_mode true
+round_time_minutes 20
+reinforcements_per_faction 0
+max_player_respawns 0
+spawn_immunity_timer 5
+faction_balancing false
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+wave_spawn_time_seconds -1
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+minimum_players -1
+maximum_players 200
+nature_preset Forest_Dark_Night
+faction_attacking Central
+faction_defending Allied
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+sappers_attacking_starting_materials 0
+sappers_defending_starting_materials 100
+sappers_buildlimit MachineGunAllied attacking 2
+sappers_buildlimit MachineGunAllied defending 2
+sappers_buildlimit MachineGunCentral attacking 0
+sappers_buildlimit MachineGunCentral defending 0
+class_system_orders false
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 240
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 30
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+max_accumulated_faction_points -1
+conquest_tick_reward 3
+conquest_ticker_time_seconds 1
+conquest_tickets_per_capture 100
+conquest_max_tickets 7500
+conquest_territory_lock_time_seconds 0
+frontline_offensive_domination_duration_seconds 120
+is_halloween true
+
+# # Weapon Overrides - NaW - British = Zombies
+starting_weapons_selection_override Central ArmyInfantryOfficer 0 1 Sword
+starting_weapons_selection_override Central ArmyLineInfantry 0 1 Sword
+starting_weapons_selection_override Central Surgeon 0 1 Sword
+starting_weapons_selection_override Central Sapper 0 1 Sword
+starting_weapons_selection_override Central Carpenter 0 1 Sword
+starting_weapons_selection_override Central Cannoneer 0 1 Sword
+
+# Zombies Overrides
+rc set characterRunSpeed 1.5 # Increase run speed 
+rc set attackingFactionMaterialPoints 0 # Zombies cannot build
+rc set spawnSectionsCapturable false # Disable capture spawn point
+rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# Bot on both teams
+rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+rc vehiclesSpawn 20 Central
+rc vehiclesSpawn 20 Allied
+
+# # Loaded Modifications
+load_mod 2796559831 # Last Bastion
+load_mod 2870627774 # Zombie Sounds
+
+!map_rotation end
+
+# #2 = Ravenstone 
+# !map_rotation start
+# map_name Ravenstone 
+# game_mode ArmySiege
+# game_type hardcore
+# frontlines_mode true
+# friendly_fire true
+# conquest_ticker_time_seconds 1
+# conquest_tick_reward 1
+# conquest_tickets_per_capture 25
+# conquest_max_tickets 1000
+# conquest_territory_lock_time_seconds 0
+# round_time_minutes 15
+# max_accumulated_faction_points -1
+# reinforcements_per_faction 9999
+# wave_spawn_time_seconds 15
+# wave_spawn_vehicle_time_seconds 60
+# spawn_immunity_timer 5
+# max_player_respawns -1
+# faction_balancing false
+# allow_midround_spawning true
+# allow_faction_switching true
+# allow_spectating true
+# minimum_players -1
+# maximum_players 250
+# nature_preset Forest_Dark_Night
+# faction_attacking Central
+# faction_defending Allied
+# friendly_fire_melee_bounce false
+# rc set allowFiring true
+# class_system_orders_reinforce false
+
+# # Weapon Overrides - NaW - British = Zombies
+# starting_weapons_selection_override British ArmyInfantryOfficer 0 1 Sword
+# starting_weapons_selection_override British ArmyLineInfantry 0 1 Sword
+# starting_weapons_selection_override British Grenadier 0 1 Sword
+# starting_weapons_selection_override British Guard 0 1 Sword
+# starting_weapons_selection_override British LightInfantry 0 1 Sword
+# starting_weapons_selection_override British Rifleman 0 1 Sword
+# starting_weapons_selection_override British FlagBearer 0 1 Sword
+# starting_weapons_selection_override British Musician 0 1 Sword
+# starting_weapons_selection_override British Surgeon 0 1 Sword
+# starting_weapons_selection_override British Sergeant 0 1 Sword
+# starting_weapons_selection_override British Sapper 0 1 Sword
+# starting_weapons_selection_override British Cannoneer 0 1 Sword
+# starting_weapons_selection_override British Rocketeer 0 1 Sword
+# starting_weapons_selection_override British NavalCaptain 0 1 Sword
+# starting_weapons_selection_override British NavalMarine 0 1 Sword
+# starting_weapons_selection_override British NavalSailor 0 1 Sword
+# starting_weapons_selection_override British NavalSailor2 0 1 Sword
+# starting_weapons_selection_override British Carpenter 0 1 Sword
+# starting_weapons_selection_override British CoastGuard 0 1 Sword
+# starting_weapons_selection_override British Customs 0 1 Sword
+# starting_weapons_selection_override British Hussar 0 1 Sword
+# starting_weapons_selection_override British Dragoon 0 1 Sword
+
+# # Zombies Overrides
+# rc set characterRunSpeed 1.5 # Increase run speed 
+# rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+# rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+# rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+# rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# # Bot on both teams
+rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+rc vehiclesSpawn 20 Central
+rc vehiclesSpawn 20 Allied
+
+# !map_rotation end
+
+#89 = Fort Schwarz (Siege) [Pop - High]
+!map_rotation start
+map_name fortschwarz
+game_mode ArmySiege
+game_type hardcore
+frontlines_mode true
+round_time_minutes 20
+reinforcements_per_faction 0
+max_player_respawns 0
+spawn_immunity_timer 5
+faction_balancing false
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+wave_spawn_time_seconds -1
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+minimum_players -1
+maximum_players 200
+nature_preset Snow_Snowing_Night
+faction_attacking Central
+faction_defending Allied
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 240
+max_accumulated_faction_points -1
+sappers_attacking_starting_materials 0
+sappers_buildlimit MachineGunCentral attacking 0
+sappers_buildlimit MachineGunCentral defending 0
+
+# Weapon Overrides - NaW - British = Zombies
+starting_weapons_selection_override Central ArmyInfantryOfficer 0 1 Sword
+starting_weapons_selection_override Central ArmyLineInfantry 0 1 Sword
+starting_weapons_selection_override Central Surgeon 0 1 Sword
+starting_weapons_selection_override Central Sapper 0 1 Sword
+starting_weapons_selection_override Central Carpenter 0 1 Sword
+starting_weapons_selection_override Central Cannoneer 0 1 Sword
+
+# Zombies Overrides
+rc set characterRunSpeed 1.5 # Increase run speed 
+rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# Bot on both teams
+rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+rc vehiclesSpawn 20 Central
+rc vehiclesSpawn 20 Allied
+
+!map_rotation end
+
+
+#90 = Fort Pierre (Siege) [Pop - High]
+!map_rotation start
+map_name fortpierre
+game_mode ArmySiege
+game_type hardcore
+frontlines_mode true
+round_time_minutes 20
+reinforcements_per_faction 0
+max_player_respawns 0
+spawn_immunity_timer 5
+faction_balancing false
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+wave_spawn_time_seconds -1
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+minimum_players -1
+maximum_players 200
+nature_preset Snow_Snowing_Night
+faction_attacking Central
+faction_defending Allied
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 240
+sappers_attacking_starting_materials 0
+sappers_buildlimit MachineGunCentral attacking 0
+sappers_buildlimit MachineGunCentral defending 0
+
+# Weapon Overrides - NaW - British = Zombies
+starting_weapons_selection_override Central ArmyInfantryOfficer 0 1 Sword
+starting_weapons_selection_override Central ArmyLineInfantry 0 1 Sword
+starting_weapons_selection_override Central Surgeon 0 1 Sword
+starting_weapons_selection_override Central Sapper 0 1 Sword
+starting_weapons_selection_override Central Carpenter 0 1 Sword
+starting_weapons_selection_override Central Cannoneer 0 1 Sword
+
+# Zombies Overrides
+rc set characterRunSpeed 1.5 # Increase run speed 
+rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# Bot on both teams
+rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+rc vehiclesSpawn 20 Central
+rc vehiclesSpawn 20 Allied
+
+!map_rotation end
+
+# Camp Salamanca (Siege) [Pop - High]
+!map_rotation start
+map_name campsalamanca
+game_mode ArmySiege
+game_type hardcore
+frontlines_mode true
+round_time_minutes 20
+reinforcements_per_faction 0
+max_player_respawns 0
+spawn_immunity_timer 5
+faction_balancing false
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+wave_spawn_time_seconds -1
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+minimum_players -1
+maximum_players 200
+nature_preset Forest_Dark_Night
+faction_attacking Central
+faction_defending Allied
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 240
+sappers_attacking_starting_materials 0
+sappers_buildlimit MachineGunCentral attacking 0
+sappers_buildlimit MachineGunCentral defending 0
+
+# Weapon Overrides - NaW - British = Zombies
+starting_weapons_selection_override Central ArmyInfantryOfficer 0 1 Sword
+starting_weapons_selection_override Central ArmyLineInfantry 0 1 Sword
+starting_weapons_selection_override Central Surgeon 0 1 Sword
+starting_weapons_selection_override Central Sapper 0 1 Sword
+starting_weapons_selection_override Central Carpenter 0 1 Sword
+starting_weapons_selection_override Central Cannoneer 0 1 Sword
+
+# Zombies Overrides
+rc set characterRunSpeed 1.5 # Increase run speed 
+rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# Bot on both teams
+rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+rc vehiclesSpawn 20 Central
+rc vehiclesSpawn 20 Allied
+
+!map_rotation end
+
+# # Glacier (Battlefield) [Pop - Medium & High]
+# !map_rotation start
+# map_name glacier
+# game_mode ArmyBattlefield
+# game_type hardcore
+# frontlines_mode true
+# round_time_minutes 20
+# reinforcements_per_faction 0
+# wave_spawn_time_seconds 10
+# wave_spawn_vehicle_time_seconds 20
+# wave_spawn_dynamic_time_seconds 15
+# spawn_immunity_timer 5
+# max_player_respawns -1
+# faction_balancing false
+# faction_balancing_discrepancy_amount 0
+# allow_midround_spawning true
+# allow_faction_switching true
+# allow_spectating true
+# minimum_players -1
+# maximum_players 200
+# nature_preset Snow_Dark_Night
+# faction_attacking central
+# faction_defending allied
+# # faction_randomiser both
+# friendly_fire false
+# friendly_fire_melee_bounce false
+# damage_split 0
+# sappers_attacking_starting_materials 70
+# sappers_defending_starting_materials 70
+# sappers_buildlimit explosivebarrel attacking 3
+# sappers_buildlimit explosivebarrel defending 3
+# sappers_buildlimit palisade attacking 3
+# sappers_buildlimit palisade defending 3
+# sappers_buildlimit shootingplatform attacking 3
+# sappers_buildlimit shootingplatform defending 3
+# sappers_buildlimit rocketstack attacking 0
+# sappers_buildlimit rocketstack defending 0
+# class_system_orders true
+# class_system_orders_reinforce true
+# class_system_orders_reinforce_limit -1
+# class_system_orders_reinforce_cooldown 240
+# population_verylow_playable true
+# population_low_playable true
+# population_medium_playable true
+# population_high_playable true
+# max_accumulated_faction_points -1
+
+# # Weapon Overrides - NaW - British = Zombies
+# starting_weapons_selection_override British ArmyInfantryOfficer 0 1 Sword
+# starting_weapons_selection_override British ArmyLineInfantry 0 1 Sword
+# starting_weapons_selection_override British Grenadier 0 1 Sword
+# starting_weapons_selection_override British Guard 0 1 Sword
+# starting_weapons_selection_override British LightInfantry 0 1 Sword
+# starting_weapons_selection_override British Rifleman 0 1 Sword
+# starting_weapons_selection_override British FlagBearer 0 1 Sword
+# starting_weapons_selection_override British Musician 0 1 Sword
+# starting_weapons_selection_override British Surgeon 0 1 Sword
+# starting_weapons_selection_override British Sergeant 0 1 Sword
+# starting_weapons_selection_override British Sapper 0 1 Sword
+# starting_weapons_selection_override British Cannoneer 0 1 Sword
+# starting_weapons_selection_override British Rocketeer 0 1 Sword
+# starting_weapons_selection_override British NavalCaptain 0 1 Sword
+# starting_weapons_selection_override British NavalMarine 0 1 Sword
+# starting_weapons_selection_override British NavalSailor 0 1 Sword
+# starting_weapons_selection_override British NavalSailor2 0 1 Sword
+# starting_weapons_selection_override British Carpenter 0 1 Sword
+# starting_weapons_selection_override British CoastGuard 0 1 Sword
+# starting_weapons_selection_override British Customs 0 1 Sword
+# starting_weapons_selection_override British Hussar 0 1 Sword
+# starting_weapons_selection_override British Dragoon 0 1 Sword
+
+# # Zombies Overrides
+# rc set characterRunSpeed 1.5 # Increase run speed 
+# rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+# rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+# rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+# rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# # Bot on both teams
+# rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+# rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+# rc vehiclesSpawn 20 Central
+# rc vehiclesSpawn 20 Allied
+
+# !map_rotation end
+
+# Fort FortAlFarid (Siege)
+!map_rotation start
+map_name fortalfarid
+game_mode ArmySiege
+game_type hardcore
+frontlines_mode true
+round_time_minutes 20
+reinforcements_per_faction 0
+max_player_respawns 0
+spawn_immunity_timer 5
+faction_balancing false
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+wave_spawn_time_seconds -1
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+minimum_players -1
+maximum_players 200
+nature_preset Sand_Clear_Night
+faction_attacking Central
+faction_defending Allied
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 240
+sappers_attacking_starting_materials 0
+sappers_buildlimit MachineGunCentral attacking 0
+sappers_buildlimit MachineGunCentral defending 0
+
+# Weapon Overrides - NaW - British = Zombies
+starting_weapons_selection_override Central ArmyInfantryOfficer 0 1 Sword
+starting_weapons_selection_override Central ArmyLineInfantry 0 1 Sword
+starting_weapons_selection_override Central Surgeon 0 1 Sword
+starting_weapons_selection_override Central Sapper 0 1 Sword
+starting_weapons_selection_override Central Carpenter 0 1 Sword
+starting_weapons_selection_override Central Cannoneer 0 1 Sword
+
+# Zombies Overrides
+rc set characterRunSpeed 1.5 # Increase run speed 
+rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# Bot on both teams
+rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+rc vehiclesSpawn 20 Central
+rc vehiclesSpawn 20 Allied
+
+!map_rotation end
+
+# Fort Salettes (Siege)
+!map_rotation start
+map_name fortsalettes
+game_mode ArmySiege
+game_type hardcore
+frontlines_mode true
+round_time_minutes 20
+reinforcements_per_faction 0
+max_player_respawns 0
+spawn_immunity_timer 5
+faction_balancing false
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+wave_spawn_time_seconds -1
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+minimum_players -1
+maximum_players 200
+nature_preset Forest_Dark_Night
+faction_attacking Central
+faction_defending Allied
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 240
+sappers_attacking_starting_materials 0
+sappers_buildlimit MachineGunCentral attacking 0
+sappers_buildlimit MachineGunCentral defending 0
+
+# Weapon Overrides - NaW - British = Zombies
+starting_weapons_selection_override Central ArmyInfantryOfficer 0 1 Sword
+starting_weapons_selection_override Central ArmyLineInfantry 0 1 Sword
+starting_weapons_selection_override Central Surgeon 0 1 Sword
+starting_weapons_selection_override Central Sapper 0 1 Sword
+starting_weapons_selection_override Central Carpenter 0 1 Sword
+starting_weapons_selection_override Central Cannoneer 0 1 Sword
+
+# Zombies Overrides
+rc set characterRunSpeed 1.5 # Increase run speed 
+rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# Bot on both teams
+rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+rc vehiclesSpawn 20 Central
+rc vehiclesSpawn 20 Allied
+
+!map_rotation end
+
+# Fort Darial (Siege)
+!map_rotation start
+map_name fortdarial
+game_mode ArmySiege
+game_type hardcore
+frontlines_mode true
+round_time_minutes 20
+reinforcements_per_faction 0
+max_player_respawns 0
+spawn_immunity_timer 5
+faction_balancing false
+allow_midround_spawning true
+allow_faction_switching true
+allow_spectating true
+wave_spawn_time_seconds -1
+wave_spawn_vehicle_time_seconds 20
+wave_spawn_dynamic_time_seconds 15
+minimum_players -1
+maximum_players 200
+nature_preset Snow_Snowing_Night
+faction_attacking Central
+faction_defending Allied
+friendly_fire false
+friendly_fire_melee_bounce false
+damage_split 0
+population_verylow_playable true
+population_low_playable true
+population_medium_playable true
+population_high_playable true
+class_system_orders true
+class_system_orders_reinforce true
+class_system_orders_reinforce_limit -1
+class_system_orders_reinforce_cooldown 240
+sappers_attacking_starting_materials 0
+sappers_buildlimit MachineGunCentral attacking 0
+sappers_buildlimit MachineGunCentral defending 0
+
+# Weapon Overrides - NaW - British = Zombies
+starting_weapons_selection_override Central ArmyInfantryOfficer 0 1 Sword
+starting_weapons_selection_override Central ArmyLineInfantry 0 1 Sword
+starting_weapons_selection_override Central Surgeon 0 1 Sword
+starting_weapons_selection_override Central Sapper 0 1 Sword
+starting_weapons_selection_override Central Carpenter 0 1 Sword
+starting_weapons_selection_override Central Cannoneer 0 1 Sword
+
+# Zombies Overrides
+rc set characterRunSpeed 1.5 # Increase run speed 
+rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# Bot on both teams
+rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+rc vehiclesSpawn 20 Central
+rc vehiclesSpawn 20 Allied
+
+!map_rotation end
+
+# # FortImraan
+# !map_rotation start
+# map_name FortImraan
+# game_mode ArmySiege
+# game_type hardcore
+# frontlines_mode true
+# round_time_minutes 20
+# reinforcements_per_faction 0
+# max_player_respawns 0
+# spawn_immunity_timer 5
+# faction_balancing false
+# allow_midround_spawning true
+# allow_faction_switching true
+# allow_spectating true
+# wave_spawn_time_seconds -1
+# wave_spawn_vehicle_time_seconds 20
+# wave_spawn_dynamic_time_seconds 15
+# minimum_players -1
+# maximum_players 200
+# nature_preset Sand_Clear_Night
+# faction_attacking Central
+# faction_defending Allied
+# friendly_fire false
+# friendly_fire_melee_bounce false
+# damage_split 0
+# population_verylow_playable true
+# population_low_playable true
+# population_medium_playable true
+# population_high_playable true
+# class_system_orders true
+# class_system_orders_reinforce true
+# class_system_orders_reinforce_limit -1
+# class_system_orders_reinforce_cooldown 240
+# max_accumulated_faction_points -1
+# conquest_territory_lock_time_seconds 0
+# capture_point_override A 300 30 1
+# capture_point_override B 350 30 1
+# capture_point_override C 550 30 1
+
+# # Weapon Overrides - NaW - British = Zombies
+# starting_weapons_selection_override British ArmyInfantryOfficer 0 1 Sword
+# starting_weapons_selection_override British ArmyLineInfantry 0 1 Sword
+# starting_weapons_selection_override British Grenadier 0 1 Sword
+# starting_weapons_selection_override British Guard 0 1 Sword
+# starting_weapons_selection_override British LightInfantry 0 1 Sword
+# starting_weapons_selection_override British Rifleman 0 1 Sword
+# starting_weapons_selection_override British FlagBearer 0 1 Sword
+# starting_weapons_selection_override British Musician 0 1 Sword
+# starting_weapons_selection_override British Surgeon 0 1 Sword
+# starting_weapons_selection_override British Sergeant 0 1 Sword
+# starting_weapons_selection_override British Sapper 0 1 Sword
+# starting_weapons_selection_override British Cannoneer 0 1 Sword
+# starting_weapons_selection_override British Rocketeer 0 1 Sword
+# starting_weapons_selection_override British NavalCaptain 0 1 Sword
+# starting_weapons_selection_override British NavalMarine 0 1 Sword
+# starting_weapons_selection_override British NavalSailor 0 1 Sword
+# starting_weapons_selection_override British NavalSailor2 0 1 Sword
+# starting_weapons_selection_override British Carpenter 0 1 Sword
+# starting_weapons_selection_override British CoastGuard 0 1 Sword
+# starting_weapons_selection_override British Customs 0 1 Sword
+# starting_weapons_selection_override British Hussar 0 1 Sword
+# starting_weapons_selection_override British Dragoon 0 1 Sword
+
+# # Zombies Overrides
+# rc set characterRunSpeed 1.5 # Increase run speed 
+# rc set ragdollForceMultiplier 2.0 # Increase ragdoll force
+# rc set characterMeleeWeaponReleaseTime 0 # Instant Melee
+# rc set characterSecondaryAttackWindDownTime 0 # Instant kick wind down
+# rc set characterSecondaryAttackTime 0.5 # Quicker Kicks
+# # Bot on both teams
+# rc carbonPlayers spawnSpecific Central LightInfantry SpawnBot0
+# rc carbonPlayers spawnSpecific Allied LightInfantry SpawnBot1
+# rc vehiclesSpawn 20 Central
+# rc vehiclesSpawn 20 Allied
+
+# !map_rotation end
