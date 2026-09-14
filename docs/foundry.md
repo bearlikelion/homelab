@@ -25,12 +25,34 @@ Then build and configure the guest:
 The first start downloads the distribution before it listens, so allow a few minutes.
 Open `https://foundry.arneman.me`, enter the admin key, accept the license, and create or install worlds.
 
+## Adding campaign files
+
+Foundry's data directory is shared over Samba inside the existing `tank` share:
+
+- Windows: `\\files\tank\foundry` (or `\\192.168.1.190\tank\foundry`)
+- Linux: `/mnt/tank/foundry`, once `scripts/desktop-mount-tank.sh` has run
+
+Drop files into the matching folder under `Data`:
+
+| Folder | Holds |
+|---|---|
+| `Data/worlds` | campaigns, one folder per world |
+| `Data/modules` | modules and adventure packs |
+| `Data/systems` | game systems |
+| anything else under `Data`, e.g. `Data/assets` | maps, tokens, audio |
+
+Unzip packs so each world, module or system is its own folder containing its `world.json`, `module.json` or `system.json`.
+Foundry picks new worlds, modules and systems up when you return to the setup screen; assets are usable immediately.
+Files copied this way skip Cloudflare's 100 MB upload limit, so this is the way to bring in large map or audio packs.
+
+Everything is owned by `mediauser` (13000): Foundry runs as that uid and Samba writes as it, so no ownership fixes are ever needed.
+
 ## Data and backups
 
-Worlds, systems, modules and uploaded assets live in `/opt/foundry/data`, a directory on the guest's root filesystem rather than a bind mount, so the nightly vzdump archive captures them.
-For a full recovery, restore guest 240 from its vzdump archive.
+Everything lives on the host's `fast/foundry` dataset (`/fast/foundry`), bind-mounted into `foundry` at `/opt/foundry/data` and into `files` at `/srv/samba/tank/foundry`.
+vzdump skips bind mounts, so `scripts/pve-backup.sh` backs `/fast/foundry` up with restic, locally and to B2.
 
-Cloudflare's free plan rejects request bodies over 100 MB, so upload large maps or audio packs from the LAN (`http://192.168.1.240:30000`) instead of the public name.
+Rebuilding guest 240 leaves the campaigns untouched; `make apply` and `make deploy` bring Foundry back on top of the same data.
 
 ## Upgrades
 

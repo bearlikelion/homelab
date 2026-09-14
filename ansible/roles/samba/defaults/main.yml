@@ -19,7 +19,7 @@ samba_wsdd_enabled: true
 samba_shadow_copy: false
 samba_snapshot_prefix: autosnap
 
-# One share over the whole pool, so a desktop gets a single /mnt/tank. The four
+# One share over the whole pool, so a desktop gets a single /mnt/tank. The
 # datasets under it are individual bind mounts from the files module in
 # live/prod/node/main.tf.
 samba_shares:
@@ -37,6 +37,7 @@ samba_expected_datasets:
   - bulk
   - backup
   - clips
+  - foundry
 
 # Names only. Each needs a samba_<name>_password in the sops secrets file; the
 # _password suffix is what .sops.yaml keys its encryption off.

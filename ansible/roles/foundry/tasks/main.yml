@@ -12,11 +12,16 @@
       download the licensed build) and foundry_admin_key must be in the sops
       secrets file.
 
-- name: Create the data directory
+# The bind mount from fast/foundry, shared with Samba. Foundry refuses to start
+# if it cannot write here.
+- name: Own the data directory as the media identity
   ansible.builtin.file:
     path: "{{ foundry_dir }}/data"
     state: directory
-    mode: "0755"
+    owner: "{{ media_uid }}"
+    group: "{{ media_gid }}"
+    mode: "0775"
+  register: foundry_data
 
 - name: Write the environment file
   ansible.builtin.copy:
@@ -46,7 +51,7 @@
   community.docker.docker_compose_v2:
     project_src: "{{ foundry_dir }}"
     state: restarted
-  when: foundry_compose.changed or foundry_env.changed
+  when: foundry_compose.changed or foundry_env.changed or foundry_data.changed
 
 # The first start downloads the ~200 MB distribution before it listens.
 - name: Wait for the web interface

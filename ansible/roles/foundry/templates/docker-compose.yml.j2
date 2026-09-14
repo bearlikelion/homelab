@@ -3,6 +3,8 @@ services:
     image: {{ foundry_image }}
     container_name: foundry
     restart: unless-stopped
+    # mediauser, so files Samba writes to the same dataset are Foundry's own.
+    user: "{{ media_uid }}:{{ media_gid }}"
     environment:
       FOUNDRY_USERNAME: "${FOUNDRY_USERNAME}"
       FOUNDRY_PASSWORD: "${FOUNDRY_PASSWORD}"
@@ -12,6 +14,8 @@ services:
       FOUNDRY_PROXY_PORT: "443"
       FOUNDRY_TELEMETRY: "false"
       CONTAINER_CACHE: /data/container_cache
+      # Group-writable, so the media group can edit what Foundry creates.
+      CONTAINER_UMASK: "0002"
     volumes:
       - {{ foundry_dir }}/data:/data
     ports:

@@ -493,8 +493,9 @@ module "design" {
 }
 
 # --- Foundry VTT ------------------------------------------------------------
-# Public at foundry.arneman.me through the GCP tunnel, like design. World data
-# is a bind under /opt on the rootfs, so vzdump captures it.
+# Public at foundry.arneman.me through the GCP tunnel, like design. Worlds and
+# assets live on fast/foundry, which vzdump skips, so pve-backup.sh restics it.
+# Foundry runs as mediauser so files dropped in over Samba are already its own.
 
 module "foundry" {
   source = "../../../modules/lxc"
@@ -507,6 +508,15 @@ module "foundry" {
   cores     = 2
   memory    = 4096
   disk_size = 32
+
+  mount_points = {
+    data = {
+      volume = "/fast/foundry"
+      path   = "/opt/foundry/data"
+    }
+  }
+
+  idmap = local.media_idmap
 
   ipv4_address = "192.168.1.240/24"
   ipv4_gateway = var.gateway
@@ -607,6 +617,11 @@ module "files" {
     backup = {
       volume = "/tank/backup"
       path   = "/srv/samba/tank/backup"
+    }
+    # On fast, not tank, but served inside the tank share so it is one mount away.
+    foundry = {
+      volume = "/fast/foundry"
+      path   = "/srv/samba/tank/foundry"
     }
   }
 

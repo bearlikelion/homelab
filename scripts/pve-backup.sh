@@ -55,13 +55,13 @@ backup_to() {
 # Local gets everything, including the vzdumps: restoring a container from
 # tank is far faster than pulling it back from B2.
 backup_to "$LOCAL_REPO" "local" \
-  /tank/documents /tank/backup/dump /tank/backup/host-config
+  /tank/documents /tank/backup/dump /tank/backup/host-config /fast/foundry
 
 # Offsite gets the irreplaceable data plus the host config, but not the
 # vzdumps. The containers are rebuildable from the repo with make apply-all,
 # so shipping ~12G of rootfs archives offsite every night buys little and
 # costs days on the initial upload.
 backup_to "b2:$B2_BUCKET:server" "b2" \
-  /tank/documents /tank/backup/host-config
+  /tank/documents /tank/backup/host-config /fast/foundry
 
 log "done"
