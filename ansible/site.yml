@@ -97,6 +97,12 @@
   roles:
     - penpot
 
+- name: Deploy Foundry VTT
+  hosts: foundry
+  become: true
+  roles:
+    - foundry
+
 # The runner registers against the play above, so that one has to have run.
 - name: Deploy the build box
   hosts: build

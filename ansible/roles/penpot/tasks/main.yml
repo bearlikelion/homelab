@@ -1,5 +1,5 @@
 ---
-# Penpot, reached as design.{{ internal_domain }} through Caddy on edge.
+# Penpot, public at {{ penpot_public_uri }} through the GCP tunnel.
 
 - name: Create the stack directory
   ansible.builtin.file:
@@ -52,7 +52,7 @@
 - name: Where to go next
   ansible.builtin.debug:
     msg:
-      - "Penpot at {{ internal_domain_scheme }}://design.{{ internal_domain }}"
+      - "Penpot at {{ penpot_public_uri }}"
       - >-
         {% if penpot_registration_enabled %}Registration is open. Create the
         initial accounts, then set penpot_registration_enabled: false and

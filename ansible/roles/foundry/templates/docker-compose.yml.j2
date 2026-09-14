@@ -1,0 +1,18 @@
+services:
+  foundry:
+    image: {{ foundry_image }}
+    container_name: foundry
+    restart: unless-stopped
+    environment:
+      FOUNDRY_USERNAME: "${FOUNDRY_USERNAME}"
+      FOUNDRY_PASSWORD: "${FOUNDRY_PASSWORD}"
+      FOUNDRY_ADMIN_KEY: "${FOUNDRY_ADMIN_KEY}"
+      FOUNDRY_HOSTNAME: foundry.{{ base_domain }}
+      FOUNDRY_PROXY_SSL: "true"
+      FOUNDRY_PROXY_PORT: "443"
+      FOUNDRY_TELEMETRY: "false"
+      CONTAINER_CACHE: /data/container_cache
+    volumes:
+      - {{ foundry_dir }}/data:/data
+    ports:
+      - "{{ foundry_port }}:30000"

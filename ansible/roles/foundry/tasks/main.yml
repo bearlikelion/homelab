@@ -1,0 +1,56 @@
+---
+# Foundry VTT, public at foundry.{{ base_domain }} through the GCP tunnel.
+
+- name: Fail early without Foundry credentials
+  ansible.builtin.assert:
+    that:
+      - foundry_username | default('') | length > 0
+      - foundry_password | default('') | length > 0
+      - foundry_admin_key | default('') | length > 0
+    fail_msg: >-
+      foundry_username, foundry_password (your foundryvtt.com account, used to
+      download the licensed build) and foundry_admin_key must be in the sops
+      secrets file.
+
+- name: Create the data directory
+  ansible.builtin.file:
+    path: "{{ foundry_dir }}/data"
+    state: directory
+    mode: "0755"
+
+- name: Write the environment file
+  ansible.builtin.copy:
+    content: |
+      FOUNDRY_USERNAME={{ foundry_username }}
+      FOUNDRY_PASSWORD={{ foundry_password }}
+      FOUNDRY_ADMIN_KEY={{ foundry_admin_key }}
+    dest: "{{ foundry_dir }}/.env"
+    mode: "0600"
+  register: foundry_env
+  no_log: true
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ foundry_dir }}/docker-compose.yml"
+    mode: "0644"
+  register: foundry_compose
+
+- name: Start Foundry
+  community.docker.docker_compose_v2:
+    project_src: "{{ foundry_dir }}"
+    state: present
+    pull: missing
+
+- name: Restart when config changed
+  community.docker.docker_compose_v2:
+    project_src: "{{ foundry_dir }}"
+    state: restarted
+  when: foundry_compose.changed or foundry_env.changed
+
+# The first start downloads the ~200 MB distribution before it listens.
+- name: Wait for the web interface
+  ansible.builtin.wait_for:
+    port: "{{ foundry_port }}"
+    host: 127.0.0.1
+    timeout: 600

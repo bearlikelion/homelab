@@ -465,7 +465,7 @@ module "code" {
 }
 
 # --- Design -----------------------------------------------------------------
-# Penpot, kept internal behind Caddy. PostgreSQL and uploaded assets both live
+# Penpot, public through the GCP tunnel. PostgreSQL and uploaded assets both live
 # in Docker volumes on the rootfs, so the normal vzdump job captures a complete
 # restorable instance. The 100G disk follows Penpot's recommended starting
 # point for small installations and can grow in place if the workspace does.
@@ -490,6 +490,32 @@ module "design" {
 
   tags          = ["design", "tofu"]
   startup_order = 42
+}
+
+# --- Foundry VTT ------------------------------------------------------------
+# Public at foundry.arneman.me through the GCP tunnel, like design. World data
+# is a bind under /opt on the rootfs, so vzdump captures it.
+
+module "foundry" {
+  source = "../../../modules/lxc"
+
+  node_name        = var.node_name
+  vm_id            = 240
+  hostname         = "foundry"
+  template_file_id = var.template_file_id
+
+  cores     = 2
+  memory    = 4096
+  disk_size = 32
+
+  ipv4_address = "192.168.1.240/24"
+  ipv4_gateway = var.gateway
+  dns_servers  = var.dns_servers
+
+  ssh_public_keys = var.ssh_public_keys
+
+  tags          = ["vtt", "tofu"]
+  startup_order = 43
 }
 
 # --- Build ------------------------------------------------------------------
@@ -744,6 +770,11 @@ output "containers" {
       vm_id    = module.design.vm_id
       hostname = module.design.hostname
       ip       = module.design.ip
+    }
+    foundry = {
+      vm_id    = module.foundry.vm_id
+      hostname = module.foundry.hostname
+      ip       = module.foundry.ip
     }
     backup = {
       vm_id    = module.backup.vm_id

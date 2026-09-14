@@ -34,6 +34,7 @@ penpot_exporter_image: penpotapp/exporter:2.17.2
 penpot_mcp_image: penpotapp/mcp:2.17.2
 penpot_postgres_image: postgres:15
 penpot_valkey_image: valkey/valkey:8.1
+foundry_image: felddy/foundryvtt:14.367
 caddy_version: "2.11.4"
 
 # --- Paths ------------------------------------------------------------------
@@ -68,6 +69,7 @@ clips_ip: 192.168.1.200
 code_ip: 192.168.1.210
 pelican_ip: 192.168.1.220
 design_ip: 192.168.1.230
+foundry_ip: 192.168.1.240
 
 # Second resolver for guests that manage their own resolv.conf. AdGuard on edge
 # is always first; this is only what answers when it is down.
@@ -122,10 +124,6 @@ internal_services:
   # it gets its own name in internal_dns_overrides below.
   - name: code
     upstream: "{{ code_ip }}:{{ forgejo_port }}"
-  # Penpot's frontend proxies its own API, exporter and MCP routes, so Caddy
-  # only needs one upstream for the whole application.
-  - name: design
-    upstream: "{{ design_ip }}:{{ penpot_port }}"
   # The panel. Wings gets a name of its own because the browser opens the
   # console websocket straight to the daemon, and an https page is not allowed
   # to open a plain-ws one; fronting the daemon here makes both the same origin
@@ -167,6 +165,21 @@ public_services:
   # link. Fireshare's own login gates uploads and the private feed.
   - name: clips
     upstream: "{{ clips_ip }}:{{ fireshare_port }}"
+
+# Public through the GCP node: Cloudflare, Traefik on seer, then the WireGuard
+# tunnel into Caddy here. mark-gcp's homelab_services must list the same names.
+tunneled_services:
+  # Penpot's frontend proxies its own API, exporter and MCP routes.
+  - name: design
+    upstream: "{{ design_ip }}:{{ penpot_port }}"
+  - name: foundry
+    upstream: "{{ foundry_ip }}:{{ foundry_port }}"
+
+# Edge's end of the tunnel; its private key is wireguard_private_key in sops.
+wireguard_address: 10.99.0.2/24
+seer_public_ip: 35.208.90.70
+seer_wireguard_ip: 10.99.0.1
+seer_wireguard_public_key: zZk0vzZIKpMUD5icrqkjiuzwpHrAnDjc2t/PL/hvXx8=
 
 ddns_subdomain: home
 
@@ -274,16 +287,15 @@ forgejo_admin_user: mark
 forgejo_disable_registration: true
 
 # --- Design (Penpot) --------------------------------------------------------
-# Internal-only at design.{{ internal_domain }}. The root filesystem holds both
-# persistent volumes, so the normal vzdump archive captures the database and
-# uploaded assets together.
+# Public at design.{{ base_domain }} through the tunnel. The root filesystem
+# holds both persistent volumes, so vzdump captures the database and assets.
 
 penpot_dir: /opt/penpot
 penpot_port: 9001
+penpot_public_uri: "https://design.{{ base_domain }}"
 
-# Leave true for the first deploy, create the accounts, then flip it and re-run
-# the playbook. Password login remains available for existing accounts.
-penpot_registration_enabled: true
+# Closed now that the instance is public. Invite new users from inside Penpot.
+penpot_registration_enabled: false
 
 # No SMTP provider is configured. Verification is disabled and invitation
 # tokens are logged by the backend so a small internal team can still onboard.
@@ -514,3 +526,10 @@ pelican_node_disk: 262144
 # default to.
 pelican_game_port_min: 27015
 pelican_game_port_max: 27100
+
+# --- Foundry VTT ------------------------------------------------------------
+# Public at foundry.{{ base_domain }} through the tunnel. The container downloads
+# the licensed build with foundry_username/foundry_password from sops.
+
+foundry_dir: /opt/foundry
+foundry_port: 30000

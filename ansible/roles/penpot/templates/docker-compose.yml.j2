@@ -10,7 +10,7 @@ services:
       - penpot-mcp
     environment:
       PENPOT_FLAGS: "{{ penpot_flags | join(' ') }}{% if not penpot_registration_enabled %} disable-registration{% endif %}"
-      PENPOT_PUBLIC_URI: "{{ internal_domain_scheme }}://design.{{ internal_domain }}"
+      PENPOT_PUBLIC_URI: "{{ penpot_public_uri }}"
       PENPOT_HTTP_SERVER_MAX_BODY_SIZE: "367001600"
     volumes:
       - penpot_assets:/opt/data/assets
@@ -28,7 +28,7 @@ services:
         condition: service_healthy
     environment:
       PENPOT_FLAGS: "{{ penpot_flags | join(' ') }}{% if not penpot_registration_enabled %} disable-registration{% endif %}"
-      PENPOT_PUBLIC_URI: "{{ internal_domain_scheme }}://design.{{ internal_domain }}"
+      PENPOT_PUBLIC_URI: "{{ penpot_public_uri }}"
       PENPOT_HTTP_SERVER_MAX_BODY_SIZE: "367001600"
       PENPOT_SECRET_KEY: "${PENPOT_SECRET_KEY}"
       PENPOT_DATABASE_URI: postgresql://penpot-postgres/penpot
@@ -56,7 +56,7 @@ services:
         condition: service_healthy
     environment:
       PENPOT_SECRET_KEY: "${PENPOT_SECRET_KEY}"
-      PENPOT_PUBLIC_URI: "{{ internal_domain_scheme }}://design.{{ internal_domain }}"
+      PENPOT_PUBLIC_URI: "{{ penpot_public_uri }}"
       PENPOT_INTERNAL_URI: http://penpot-frontend:8080
       PENPOT_REDIS_URI: redis://penpot-valkey/0
 

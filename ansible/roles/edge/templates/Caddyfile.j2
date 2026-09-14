@@ -44,6 +44,17 @@ http://ca.{{ internal_domain }} {
 	}
 {% endfor %}
 
+	# Only via the GCP tunnel or the LAN, so the home IP never serves these.
+{% for svc in tunneled_services %}
+	@{{ svc.name }} {
+		host {{ svc.name }}.{{ base_domain }}
+		remote_ip 192.168.1.0/24 {{ seer_wireguard_ip }}
+	}
+	handle @{{ svc.name }} {
+		reverse_proxy {{ svc.upstream }}
+	}
+{% endfor %}
+
 	handle {
 		abort
 	}

@@ -1,0 +1,15 @@
+# Edge's end of the tunnel to seer. Seer may only open 443, and the rules sit in
+# mangle so they match before Docker's DNAT exposes AdGuard and Homepage.
+[Interface]
+Address = {{ wireguard_address }}
+PrivateKey = {{ wireguard_private_key }}
+# GCP's VPC MTU is 1460.
+MTU = 1380
+PostUp = iptables -t mangle -A PREROUTING -i %i -p tcp --dport 443 -j ACCEPT; iptables -t mangle -A PREROUTING -i %i -j DROP
+PostDown = iptables -t mangle -D PREROUTING -i %i -p tcp --dport 443 -j ACCEPT; iptables -t mangle -D PREROUTING -i %i -j DROP
+
+[Peer]
+PublicKey = {{ seer_wireguard_public_key }}
+Endpoint = {{ seer_public_ip }}:51820
+AllowedIPs = {{ seer_wireguard_ip }}/32
+PersistentKeepalive = 25

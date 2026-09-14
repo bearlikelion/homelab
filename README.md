@@ -29,7 +29,8 @@ the service.
 | `vpn` | OpenVPN Access Server, the way in to everything else |
 | `build` | Compiles Godot on 24 cores so a laptop does not have to, and runs the Forgejo Actions runner |
 | `code` | Forgejo, the git server and CI backend behind `code.arneman.home` |
-| `design` | Penpot, the internal design and prototyping workspace |
+| `design` | Penpot, the design and prototyping workspace, public through the GCP tunnel |
+| `foundry` | Foundry VTT, public through the GCP tunnel |
 | `clips` | Fireshare, game clips shared by link, transcoding on the P400 |
 | `darkfall` | The Darkfall server cluster, plus the CI build rack on the mesh |
 | `pelican` | Pelican panel and Wings, SteamCMD game servers in Docker. The one VM |
@@ -40,6 +41,9 @@ the service.
 Admin interfaces stay on the LAN or behind the VPN. Only Plex and Fireshare get
 a public name and a real certificate, because both exist to be watched from
 somewhere else.
+
+Penpot and Foundry are public too, but never on the home IP.
+They are served from the GCP node in `../mark-gcp` over a WireGuard tunnel into Caddy on `edge`.
 
 A Quadro P400 is passed through to `plex` and `clips` for NVENC. The driver
 lives on the host; the containers get a matching userspace copy and nothing
@@ -73,4 +77,6 @@ the command line.
 - [docs/build.md](docs/build.md) covers the build box and remote compiles.
 - [docs/design.md](docs/design.md) covers Penpot, first sign-in, registration,
   MCP access, upgrades, and recovery.
+- [docs/foundry.md](docs/foundry.md) covers Foundry VTT, its license download, and first sign-in.
 - [docs/games.md](docs/games.md) covers the game server panel: adding a server, which ports to forward, and why that one guest is a VM.
+- [docs/tunnel.md](docs/tunnel.md) covers the WireGuard tunnel to GCP and how to publish another service through it.

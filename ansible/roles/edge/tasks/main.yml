@@ -24,6 +24,27 @@
     - "{{ edge_dir }}/homepage/images"
     - "{{ edge_dir }}/ca"
 
+# The PVE host has to load the wireguard module; this container cannot.
+- name: Install WireGuard
+  ansible.builtin.apt:
+    name: [wireguard-tools, iptables]
+    state: present
+    install_recommends: false
+
+- name: Render the tunnel config
+  ansible.builtin.template:
+    src: wg0.conf.j2
+    dest: /etc/wireguard/wg0.conf
+    mode: "0600"
+  register: edge_wireguard
+  no_log: true
+
+- name: Start the tunnel to seer
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    enabled: true
+    state: "{{ 'restarted' if edge_wireguard.changed else 'started' }}"
+
 # Debian resolvers bind :53, which AdGuard needs.
 - name: Free port 53 from systemd-resolved
   block:

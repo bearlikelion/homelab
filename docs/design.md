@@ -1,9 +1,8 @@
 # Penpot
 
-Penpot runs in the `design` LXC (230, `192.168.1.230`) and is available only
-on the LAN or VPN at `https://design.arneman.home`. Caddy on `edge` terminates
-HTTPS with the rack's local CA; Penpot itself listens on port 9001 over HTTP.
-It is not listed in `public_services` and has no public DNS name.
+Penpot runs in the `design` LXC (230, `192.168.1.230`) and is public at `https://design.arneman.me`.
+Traffic comes through Cloudflare and the GCP node, then over the WireGuard tunnel to Caddy on `edge`, which proxies to Penpot on port 9001 over HTTP.
+Caddy refuses the name from anywhere but the tunnel and the LAN, so the home IP never serves it; see [tunnel.md](tunnel.md).
 
 The guest is deliberately ordinary: OpenTofu creates an unprivileged Debian
 LXC, the common roles install Docker, and the `penpot` role renders the official
@@ -18,10 +17,9 @@ Build and configure the guest with the normal workflow:
     make apply
     make deploy
 
-Registration starts enabled. Open `https://design.arneman.home`, create the
-initial accounts, then change `penpot_registration_enabled` to `false` in
-`ansible/group_vars/all/main.yml` and run `make deploy` again. Existing users
-can continue to sign in; only new self-registration is removed.
+Registration is disabled because the instance is public.
+Existing users sign in with their passwords, and new people are invited from inside Penpot.
+To bootstrap a fresh install, set `penpot_registration_enabled` to `true`, create the accounts, then set it back and run `make deploy` again.
 
 There is no SMTP provider. Email verification is disabled, and invitation
 tokens are written to the backend log for the small internal team:
@@ -35,7 +33,7 @@ The Compose stack runs `penpot-mcp`, and `enable-mcp` is in `penpot_flags`, so t
 Nothing has to be installed by hand.
 
 1. Settings, Integrations, MCP server: enable it and generate a key.
-2. Point the MCP client at `https://design.arneman.home/mcp/stream?userToken=YOUR_MCP_KEY`.
+2. Point the MCP client at `https://design.arneman.me/mcp/stream?userToken=YOUR_MCP_KEY`.
 3. Open a file and use the MCP button in the workspace toolbar to connect the browser side.
 
 Step 3 is not optional.
@@ -52,8 +50,8 @@ There is no port 4400 on this host.
 That port belongs to the single-user `penpot-mcp` package run on a workstation, which serves its own copy of the plugin files.
 Here the frontend serves the bundled plugin at `/plugins/mcp/` and proxies the server, all on 443.
 
-The client machine must trust `caddy-root-ca.crt`, just like any other internal service.
-Treat the MCP key as a password.
+The certificate is a public Let's Encrypt one, so the client needs no extra CA.
+The endpoint is reachable from the internet, so treat the MCP key as a password.
 
 ## Data, backups, and recovery
 
