@@ -533,3 +533,5 @@ pelican_game_port_max: 27100
 
 foundry_dir: /opt/foundry
 foundry_port: 30000
+# Worlds are Quick-Started only from adventures built for this system.
+foundry_world_system: dnd5e

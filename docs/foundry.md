@@ -47,6 +47,31 @@ Files copied this way skip Cloudflare's 100 MB upload limit, so this is the way 
 
 Everything is owned by `mediauser` (13000): Foundry runs as that uid and Samba writes as it, so no ownership fixes are ever needed.
 
+## Premium modules from manifest URLs
+
+Modules that come with a manifest URL, like Snowy's Maps oneshots (the `manifest.txt` inside each post's zip), are installed by the `foundry` role rather than through Foundry's UI.
+The URLs are paid links, so they live encrypted in `foundry_module_manifests` in `ansible/group_vars/all/secrets.sops.yml`.
+
+To add one, append its URL to that list and deploy:
+
+    sops ansible/group_vars/all/secrets.sops.yml
+    cd ansible && ansible-playbook site.yml --limit foundry
+
+On every deploy, `/usr/local/bin/foundry-modules` fetches each manifest, skips modules already at that version, and unpacks new or updated ones into `Data/modules` as `mediauser`.
+The deploy output lists each module as `ok`, `installed` or `failed #N` (the position in the list, since the URLs are not printed).
+When anything is installed, Foundry restarts to discover it, which disconnects anyone in a game.
+
+## Worlds from adventure modules
+
+After installing modules, the role creates one world per adventure module that does not have one yet, using Foundry's own Quick-Start: the world is created for `foundry_world_system` (dnd5e), the module is enabled, and its adventure is imported, all on the server with no browser.
+Foundry only Quick-Starts modules that declare a `quickstart` block, so the installer adds an empty one to every adventure module; the deploy output calls that `patched`.
+
+World names come from the module title with "Snowy's Maps" and the system suffix dropped: `snowys-maps-lessons-of-giants-5e` becomes **Lessons of Giants** (`lessons-of-giants`).
+A world that already exists is never touched, so progress in it is safe across deploys.
+If a game is running when you deploy, world creation is skipped with a message and happens on the next deploy.
+
+To reimport an adventure from scratch, stop the game, move its world folder out of `Data/worlds` (for example into `world-backups/` next to `Data`), and deploy again.
+
 ## Data and backups
 
 Everything lives on the host's `fast/foundry` dataset (`/fast/foundry`), bind-mounted into `foundry` at `/opt/foundry/data` and into `files` at `/srv/samba/tank/foundry`.

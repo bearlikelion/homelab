@@ -41,17 +41,45 @@
     mode: "0644"
   register: foundry_compose
 
+- name: Install the module installer
+  ansible.builtin.copy:
+    src: foundry-modules.py
+    dest: /usr/local/bin/foundry-modules
+    mode: "0755"
+
+# Paid Patreon links, so the list lives in sops and stays out of the log.
+- name: Write the module manifest list
+  ansible.builtin.copy:
+    content: "{{ foundry_module_manifests | default([]) | join('\n') }}\n"
+    dest: "{{ foundry_dir }}/module-manifests.txt"
+    mode: "0600"
+  no_log: true
+
+- name: Install or update modules from their manifests
+  ansible.builtin.command: >-
+    /usr/local/bin/foundry-modules install {{ foundry_dir }}/module-manifests.txt
+    {{ foundry_dir }}/data/Data {{ media_uid }} {{ media_gid }}
+  register: foundry_modules
+  changed_when: "'installed' in foundry_modules.stdout or 'patched' in foundry_modules.stdout"
+
+- name: Report modules
+  ansible.builtin.debug:
+    var: foundry_modules.stdout_lines
+
 - name: Start Foundry
   community.docker.docker_compose_v2:
     project_src: "{{ foundry_dir }}"
     state: present
     pull: missing
 
-- name: Restart when config changed
+# Foundry only discovers hand-installed modules at startup.
+- name: Restart when config or modules changed
   community.docker.docker_compose_v2:
     project_src: "{{ foundry_dir }}"
     state: restarted
-  when: foundry_compose.changed or foundry_env.changed or foundry_data.changed
+  when: >-
+    foundry_compose.changed or foundry_env.changed or foundry_data.changed
+    or foundry_modules.changed
 
 # The first start downloads the ~200 MB distribution before it listens.
 - name: Wait for the web interface
@@ -59,3 +87,16 @@
     port: "{{ foundry_port }}"
     host: 127.0.0.1
     timeout: 600
+
+# Quick-Starts a world per adventure module that has none yet. Skipped while a
+# game is running, so a deploy never kicks players out.
+- name: Create a world for each adventure module
+  ansible.builtin.command: >-
+    /usr/local/bin/foundry-modules worlds {{ foundry_dir }}/data/Data
+    {{ foundry_world_system }} {{ foundry_dir }}/.env http://127.0.0.1:{{ foundry_port }}
+  register: foundry_worlds
+  changed_when: "'created world' in foundry_worlds.stdout"
+
+- name: Report worlds
+  ansible.builtin.debug:
+    var: foundry_worlds.stdout_lines
