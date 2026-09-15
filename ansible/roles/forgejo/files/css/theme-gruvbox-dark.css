@@ -1,0 +1,59 @@
+@import url("./theme-forgejo-dark.css");
+@import url("./gruvbox.css");
+
+/* forgejo-dark derives nearly every surface and text color from the steel scale. */
+:root {
+	--gb-fg: #ebdbb2;
+	--gb-gray: #928374;
+	--gb-red: #fb4934;
+	--gb-green: #b8bb26;
+	--gb-yellow: #fabd2f;
+	--gb-blue: #83a598;
+	--gb-purple: #d3869b;
+	--gb-aqua: #8ec07c;
+	--gb-orange: #fe8019;
+
+	--steel-900: #1d2021;
+	--steel-850: #232425;
+	--steel-800: #282828;
+	--steel-750: #32302f;
+	--steel-700: #3c3836;
+	--steel-650: #46403d;
+	--steel-600: #504945;
+	--steel-550: #5b524c;
+	--steel-500: #665c54;
+	--steel-450: #71665c;
+	--steel-400: #7c6f64;
+	--steel-350: #857869;
+	--steel-300: #928374;
+	--steel-250: #a89984;
+	--steel-200: #bdae93;
+	--steel-150: #d5c4a1;
+	--steel-100: #ebdbb2;
+
+	/* Softer than gruvbox bright orange #fe8019, which is harsh on the brown surfaces. */
+	--color-primary: #e78a4e;
+	--color-primary-contrast: #282828;
+	--color-primary-dark-1: color-mix(in srgb, var(--color-primary), #fbf1c7 20%);
+	--color-primary-dark-2: color-mix(in srgb, var(--color-primary), #fbf1c7 20%);
+	--color-primary-dark-3: color-mix(in srgb, var(--color-primary), #fbf1c7 40%);
+	--color-primary-dark-4: color-mix(in srgb, var(--color-primary), #fbf1c7 40%);
+	--color-primary-dark-5: color-mix(in srgb, var(--color-primary), #fbf1c7 60%);
+	--color-primary-dark-6: color-mix(in srgb, var(--color-primary), #fbf1c7 60%);
+	--color-primary-dark-7: color-mix(in srgb, var(--color-primary), #fbf1c7 80%);
+	--color-primary-light-1: color-mix(in srgb, var(--color-primary), #1d2021 10%);
+	--color-primary-light-2: color-mix(in srgb, var(--color-primary), #1d2021 20%);
+	--color-primary-light-3: color-mix(in srgb, var(--color-primary), #1d2021 30%);
+	--color-primary-light-4: color-mix(in srgb, var(--color-primary), #1d2021 40%);
+	--color-primary-light-5: color-mix(in srgb, var(--color-primary), #1d2021 40%);
+	--color-primary-light-6: color-mix(in srgb, var(--color-primary), #1d2021 55%);
+	--color-primary-light-7: color-mix(in srgb, var(--color-primary), #1d2021 55%);
+
+	--color-text-dark: #fbf1c7;
+	--color-text-focus: #fbf1c7;
+	--color-label-text: #fbf1c7;
+	--color-tooltip-text: #fbf1c7;
+	--color-tooltip-bg: #1d2021f0;
+	--color-expand-button: var(--steel-600);
+	--color-header-wrapper-transparent: #23242500;
+}

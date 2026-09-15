@@ -28,6 +28,15 @@
   args:
     creates: "{{ code_dir }}/admin-password"
 
+- name: Install the custom themes
+  ansible.builtin.copy:
+    src: css/
+    dest: "{{ forgejo_data_dir }}/gitea/public/assets/css/"
+    owner: "{{ forgejo_uid }}"
+    group: "{{ forgejo_gid }}"
+    mode: "0644"
+    directory_mode: "0755"
+
 - name: Render compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2

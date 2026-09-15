@@ -1,0 +1,2 @@
+@import url("./theme-gruvbox-light.css") (prefers-color-scheme: light);
+@import url("./theme-gruvbox-dark.css") (prefers-color-scheme: dark);

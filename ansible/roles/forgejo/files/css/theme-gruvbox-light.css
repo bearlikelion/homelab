@@ -1,0 +1,67 @@
+@import url("./theme-forgejo-light.css");
+@import url("./gruvbox.css");
+
+/* forgejo-light derives nearly every surface and text color from the zinc scale. */
+:root {
+	--gb-fg: #3c3836;
+	--gb-gray: #928374;
+	--gb-red: #9d0006;
+	--gb-green: #79740e;
+	--gb-yellow: #b57614;
+	--gb-blue: #076678;
+	--gb-purple: #8f3f71;
+	--gb-aqua: #427b58;
+	--gb-orange: #af3a03;
+
+	--zinc-50: #f6ebc1;
+	--zinc-100: #f2e5bc;
+	--zinc-150: #eee0b7;
+	--zinc-200: #ebdbb2;
+	--zinc-250: #e0cfa9;
+	--zinc-300: #d5c4a1;
+	--zinc-350: #bdae93;
+	--zinc-400: #a89984;
+	--zinc-450: #928374;
+	--zinc-500: #7c6f64;
+	--zinc-550: #71665c;
+	--zinc-600: #665c54;
+	--zinc-650: #5b524c;
+	--zinc-700: #504945;
+	--zinc-750: #46403d;
+	--zinc-800: #3c3836;
+	--zinc-850: #32302f;
+	--zinc-900: #282828;
+
+	--color-primary: #af3a03;
+	--color-primary-contrast: #fbf1c7;
+	--color-primary-dark-1: #a23603;
+	--color-primary-dark-2: #8f3002;
+	--color-primary-dark-3: #8f3002;
+	--color-primary-dark-4: #742702;
+	--color-primary-dark-5: #742702;
+	--color-primary-dark-6: #742702;
+	--color-primary-dark-7: #742702;
+	--color-primary-light-1: #d65d0e;
+	--color-primary-light-2: #fe8019;
+	--color-primary-light-3: #fda24d;
+	--color-primary-light-4: #fdb970;
+	--color-primary-light-5: #fccf93;
+	--color-primary-light-6: #fbe0ad;
+	--color-primary-light-7: #fbe9ba;
+
+	--color-grey: var(--zinc-600);
+	--color-grey-light: var(--zinc-500);
+	--color-body: #fbf1c7;
+	--color-text-dark: #282828;
+	--color-input-background: #f9f5d7;
+	--color-input-toggle-background: #f9f5d7;
+	--color-hover: #ebdbb2aa;
+	--color-active: #ebdbb2;
+	--color-label-bg: #d5c4a17b;
+	--color-label-hover-bg: #d5c4a1a0;
+	--color-label-active-bg: #d5c4a1;
+	--color-label-bg-alt: #d5c4a1;
+	--color-selection-bg: var(--zinc-600);
+	--color-selection-fg: #fbf1c7;
+	--color-header-wrapper-transparent: #f6ebc100;
+}

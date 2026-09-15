@@ -29,6 +29,9 @@ services:
       - FORGEJO__service__DISABLE_REGISTRATION={{ forgejo_disable_registration | lower }}
       - FORGEJO__actions__ENABLED=true
       - FORGEJO__repository__DEFAULT_BRANCH={{ forgejo_default_branch }}
+      - FORGEJO__repository__ENABLE_PUSH_CREATE_USER=true
+      # Setting THEMES replaces the built-in list, so the defaults are repeated.
+      - FORGEJO__ui__THEMES=gruvbox-auto,gruvbox-light,gruvbox-dark,forgejo-auto,forgejo-light,forgejo-dark,gitea-auto,gitea-light,gitea-dark,forgejo-auto-deuteranopia-protanopia,forgejo-light-deuteranopia-protanopia,forgejo-dark-deuteranopia-protanopia,forgejo-auto-tritanopia,forgejo-light-tritanopia,forgejo-dark-tritanopia
     volumes:
       - {{ forgejo_data_dir }}:/data
       - /etc/timezone:/etc/timezone:ro
