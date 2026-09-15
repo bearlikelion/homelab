@@ -33,6 +33,11 @@ services:
       - STORAGE_PROVIDER=local
       - UPLOAD_DIRECTORY=/uploads
       - NEXT_PUBLIC_UPLOAD_DIRECTORY=/uploads
+{% if postiz_x_api_key is defined %}
+      # X app callback: https://social.{{ internal_domain }}/integrations/social/x
+      - X_API_KEY={{ postiz_x_api_key }}
+      - X_API_SECRET={{ postiz_x_api_secret }}
+{% endif %}
     volumes:
       - postiz_config:/config
       - postiz_uploads:/uploads

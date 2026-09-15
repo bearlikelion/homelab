@@ -64,6 +64,8 @@ services:
     environment:
       <<: *db-info
       AC_DATA_DIR: /azerothcore/env/dist/data
+      # The game's client has no Warden, and an unanswered Warden check is a kick.
+      AC_WARDEN_ENABLED: "0"
       AC_UPDATES_ENABLE_DATABASES: "0"
       AC_DISABLE_INTERACTIVE: "1"
       AC_CLOSE_IDLE_CONNECTIONS: "0"

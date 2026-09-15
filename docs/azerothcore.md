@@ -77,6 +77,25 @@ To roll back, name an older build:
 `azerothcore_data_build` does the same for map data.
 Old builds are never deleted yet; each is about a gigabyte on a 2T pool.
 
+## The client
+
+WoWee, the native Linux client, is built the same way by `.forgejo/workflows/build.yml` in `mark/WoWee`.
+It runs in `archlinux:latest` rather than Ubuntu, because the binary links the system's own ffmpeg, SDL and unicorn, and the desktop is CachyOS.
+
+| Path on build | Holds | Written |
+|---|---|---|
+| `/build/artifacts/wowee/client/<sha>` | `wowee`, the asset tools, shaders, addons and the tracked `Data/` json | Every push |
+| `/build/artifacts/wowee/assets/<sha>` | `expansions/wotlk/`, loose files extracted from the MPQs | Only when run by hand with `extract_assets` ticked |
+
+The client reads loose files, not MPQs, and wants both halves in one `Data/` tree.
+Copy the client first, then merge the assets into it without `--delete`, which would wipe the tracked json:
+
+    rsync -a root@192.168.1.150:/build/artifacts/wowee/client/latest/ ~/Games/wowee/
+    rsync -a root@192.168.1.150:/build/artifacts/wowee/assets/latest/ ~/Games/wowee/Data/
+    cd ~/Games/wowee && ./wowee
+
+A full asset extraction is roughly the size of the client again, on the build pool.
+
 ## Accounts
 
 The server console is the worldserver's terminal.
