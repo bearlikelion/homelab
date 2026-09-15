@@ -35,6 +35,7 @@ penpot_mcp_image: penpotapp/mcp:2.17.2
 penpot_postgres_image: postgres:15
 penpot_valkey_image: valkey/valkey:8.1
 foundry_image: felddy/foundryvtt:14.367
+azerothcore_mysql_image: mysql:8.4.11
 caddy_version: "2.11.4"
 
 # --- Paths ------------------------------------------------------------------
@@ -70,6 +71,7 @@ code_ip: 192.168.1.210
 pelican_ip: 192.168.1.220
 design_ip: 192.168.1.230
 foundry_ip: 192.168.1.240
+azcore_ip: 192.168.1.250
 
 # Second resolver for guests that manage their own resolv.conf. AdGuard on edge
 # is always first; this is only what answers when it is down.
@@ -535,3 +537,10 @@ foundry_dir: /opt/foundry
 foundry_port: 30000
 # Worlds are Quick-Started only from adventures built for this system.
 foundry_world_system: dnd5e
+
+# --- AzerothCore (WotLK server) ---------------------------------------------
+# Built by the azerothcore repo's workflow on build and read straight from its
+# artifacts over a read-only bind mount. LAN only: nothing is forwarded.
+
+# The client the workflows extract from. Pushed to build by the build role.
+wotlk_client_source: /mnt/Storage/mWoW/WOTLK_Client/Data

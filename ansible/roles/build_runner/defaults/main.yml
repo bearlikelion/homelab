@@ -45,6 +45,11 @@ build_runner_host_aliases:
   - "code.{{ internal_domain }}:{{ edge_ip }}"
 
 # A job container may bind only what is listed here. The certificate store is
-# the one thing every job needs and cannot supply itself.
+# the one thing every job needs and cannot supply itself; the rest are the shared
+# ccache, the WotLK client, and where the game workflows publish builds.
 build_runner_valid_volumes:
   - /etc/ssl/certs
+  - "{{ build_root }}/ccache"
+  - "{{ build_root }}/data/wotlk-client"
+  - "{{ build_root }}/artifacts/azerothcore"
+  - "{{ build_root }}/artifacts/wowee"

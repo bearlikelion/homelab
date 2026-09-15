@@ -34,6 +34,7 @@ the service.
 | `clips` | Fireshare, game clips shared by link, transcoding on the P400 |
 | `darkfall` | The Darkfall server cluster, plus the CI build rack on the mesh |
 | `pelican` | Pelican panel and Wings, SteamCMD game servers in Docker. The one VM |
+| `azcore` | AzerothCore, a private WotLK server built by CI on `build` |
 | `social` | Postiz |
 | `backup` | Backrest over restic, nightly to local disk and offsite to B2 |
 | `files` | Samba shares over the ZFS pool |
@@ -78,5 +79,6 @@ the command line.
 - [docs/design.md](docs/design.md) covers Penpot, first sign-in, registration,
   MCP access, upgrades, and recovery.
 - [docs/foundry.md](docs/foundry.md) covers Foundry VTT, its license download, and first sign-in.
+- [docs/azerothcore.md](docs/azerothcore.md) covers the WotLK server: where it is built, first deploy, rolling back, and creating accounts.
 - [docs/games.md](docs/games.md) covers the game server panel: adding a server, which ports to forward, and why that one guest is a VM.
 - [docs/tunnel.md](docs/tunnel.md) covers the WireGuard tunnel to GCP and how to publish another service through it.

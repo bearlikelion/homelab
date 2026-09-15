@@ -1,0 +1,140 @@
+---
+# AzerothCore: MySQL, a one-shot dbimport, then authserver and worldserver.
+#
+# Nothing is copied in. The binaries and map data are read from the build pool
+# over a read-only bind mount, so a deploy re-points compose at another sha.
+
+- name: Verify the artifacts mount is present
+  ansible.builtin.command: mountpoint -q {{ azerothcore_artifacts }}
+  register: azerothcore_mount
+  changed_when: false
+  failed_when: false
+
+- name: Fail without the artifacts mount
+  ansible.builtin.fail:
+    msg: >-
+      {{ azerothcore_artifacts }} is not a mount point. It comes from mount_points
+      on the azcore module in live/prod/node/main.tf, which is ForceNew: apply first.
+  when: azerothcore_mount.rc != 0
+
+- name: Look up the builds
+  ansible.builtin.stat:
+    path: "{{ azerothcore_artifacts }}/{{ item.kind }}/{{ item.build }}"
+  register: azerothcore_builds
+  loop:
+    - kind: core
+      build: "{{ azerothcore_core_build }}"
+    - kind: data
+      build: "{{ azerothcore_data_build }}"
+  loop_control:
+    label: "{{ item.kind }}/{{ item.build }}"
+
+- name: Fail without a build
+  ansible.builtin.fail:
+    msg: >-
+      {{ azerothcore_artifacts }}/{{ item.item.kind }}/{{ item.item.build }} is
+      missing. Run the build workflow in the azerothcore repo; data only exists
+      once it has been run with extract_data ticked.
+  when: not item.stat.exists
+  loop: "{{ azerothcore_builds.results }}"
+  loop_control:
+    label: "{{ item.item.kind }}"
+
+# By sha rather than through latest, so the next CI run cannot swap files under
+# a running server.
+- name: Pin the builds
+  ansible.builtin.set_fact:
+    azerothcore_core: "{{ azerothcore_artifacts }}/core/{{ azerothcore_builds.results[0].stat.lnk_target | default(azerothcore_core_build) | basename }}"
+    azerothcore_data: "{{ azerothcore_artifacts }}/data/{{ azerothcore_builds.results[1].stat.lnk_target | default(azerothcore_data_build) | basename }}"
+
+- name: Create the directories the servers write
+  ansible.builtin.file:
+    path: "{{ azerothcore_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ azerothcore_uid }}"
+    group: "{{ azerothcore_uid }}"
+    mode: "0755"
+  loop:
+    - etc
+    - logs
+
+- name: Create the image directory
+  ansible.builtin.file:
+    path: "{{ azerothcore_dir }}/image"
+    state: directory
+    mode: "0755"
+
+- name: Copy the runtime Dockerfile
+  ansible.builtin.copy:
+    src: Dockerfile
+    dest: "{{ azerothcore_dir }}/image/Dockerfile"
+    mode: "0644"
+  register: azerothcore_dockerfile
+
+- name: Build the runtime image
+  community.docker.docker_image_build:
+    name: "{{ azerothcore_runtime_image }}"
+    tag: latest
+    path: "{{ azerothcore_dir }}/image"
+    rebuild: "{{ 'always' if azerothcore_dockerfile is changed else 'never' }}"
+
+# AzerothCore reads only the .conf, never the .dist. Seeded once and left alone,
+# so an edit made on the box survives the next deploy.
+- name: Seed the server configs
+  ansible.builtin.copy:
+    src: "{{ azerothcore_core }}/etc/{{ item }}.conf.dist"
+    dest: "{{ azerothcore_dir }}/etc/{{ item }}.conf"
+    remote_src: true
+    force: false
+    owner: "{{ azerothcore_uid }}"
+    group: "{{ azerothcore_uid }}"
+    mode: "0644"
+  loop:
+    - authserver
+    - worldserver
+    - dbimport
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ azerothcore_dir }}/docker-compose.yml"
+    mode: "0600"
+  no_log: true
+
+- name: Start the server
+  community.docker.docker_compose_v2:
+    project_src: "{{ azerothcore_dir }}"
+    state: present
+    pull: missing
+
+# The realm row ships as 127.0.0.1, which sends every client to itself. Retried
+# because on a fresh database dbimport is still creating the row.
+- name: Point the realm at this box
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --env
+      - "MYSQL_PWD={{ azerothcore_db_password }}"
+      - ac-database
+      - mysql
+      - --user=root
+      - --skip-column-names
+      - acore_auth
+      - --execute
+      - >-
+        UPDATE realmlist SET address = '{{ azcore_ip }}' WHERE id = 1;
+        SELECT address FROM realmlist WHERE id = 1;
+  register: azerothcore_realm
+  until: azerothcore_realm.stdout | trim == azcore_ip
+  retries: 60
+  delay: 10
+  changed_when: false
+  no_log: true
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Running {{ azerothcore_core | basename }} with map data {{ azerothcore_data | basename }}."
+      - "Realm at {{ azcore_ip }}:{{ azerothcore_auth_port }}."
+      - "Console: docker attach ac-worldserver, detach with Ctrl-p Ctrl-q."

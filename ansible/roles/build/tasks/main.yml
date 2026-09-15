@@ -58,8 +58,21 @@
     - "{{ build_root }}/src"
     - "{{ build_root }}/data"
     - "{{ build_root }}/artifacts"
+    - "{{ build_root }}/artifacts/azerothcore"
+    - "{{ build_root }}/artifacts/wowee"
+    - "{{ build_root }}/data/wotlk-client"
     - "{{ build_root }}/ccache"
     - "{{ build_root }}/logs"
+
+# The source MPQs the game workflows extract from, read-only in their jobs.
+# become would inject sudo, which the container does not have.
+- name: Push the WotLK client
+  become: false
+  ansible.posix.synchronize:
+    src: "{{ wotlk_client_source }}/"
+    dest: "{{ build_root }}/data/wotlk-client/Data/"
+    delete: true
+  when: wotlk_client_source is exists
 
 # A cold Godot build is ~30 minutes; a warm one with a populated cache is a
 # fraction of that. The cache lives on the bind mount so it survives the

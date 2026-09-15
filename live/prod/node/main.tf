@@ -528,6 +528,42 @@ module "foundry" {
   startup_order = 43
 }
 
+# --- AzerothCore ------------------------------------------------------------
+# The WotLK server. Nothing is compiled here: the azerothcore workflow on build
+# publishes binaries and extracted map data under the build pool, and this
+# container reads them through a read-only bind mount of that same host path.
+# The database stays in the rootfs, so vzdump keeps accounts and characters.
+
+module "azcore" {
+  source = "../../../modules/lxc"
+
+  node_name        = var.node_name
+  vm_id            = 250
+  hostname         = "azcore"
+  template_file_id = var.template_file_id
+
+  cores     = 4
+  memory    = 8192
+  disk_size = 32
+
+  ipv4_address = "192.168.1.250/24"
+  ipv4_gateway = var.gateway
+  dns_servers  = var.dns_servers
+
+  ssh_public_keys = var.ssh_public_keys
+
+  mount_points = {
+    artifacts = {
+      volume    = "${var.build_root}/artifacts/azerothcore"
+      path      = "/srv/azerothcore"
+      read_only = true
+    }
+  }
+
+  tags          = ["game", "tofu"]
+  startup_order = 46
+}
+
 # --- Build ------------------------------------------------------------------
 # C++ build box, so compiling Godot stops tying up a laptop. The host is a
 # dual E5-2690 (32 threads), and the containers above only ever reserve 16
@@ -805,6 +841,11 @@ output "containers" {
       vm_id    = module.pelican.vm_id
       hostname = module.pelican.hostname
       ip       = module.pelican.ip
+    }
+    azcore = {
+      vm_id    = module.azcore.vm_id
+      hostname = module.azcore.hostname
+      ip       = module.azcore.ip
     }
   }
 }

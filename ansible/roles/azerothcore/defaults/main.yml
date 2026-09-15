@@ -1,0 +1,20 @@
+---
+# Overridable in group_vars. Kept here so the role stands on its own.
+
+azerothcore_dir: /opt/azerothcore
+
+# The read-only bind mount from the azcore module in live/prod/node/main.tf.
+azerothcore_artifacts: /srv/azerothcore
+
+# latest, or a sha under core/ and data/ to roll back to.
+azerothcore_core_build: latest
+azerothcore_data_build: latest
+
+azerothcore_mysql_image: mysql:8.4.11
+azerothcore_runtime_image: azerothcore/runtime
+
+azerothcore_auth_port: 3724
+azerothcore_world_port: 8085
+
+# The ubuntu user in the runtime image. etc and logs are written as it.
+azerothcore_uid: 1000

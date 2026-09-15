@@ -126,3 +126,11 @@
   become: true
   roles:
     - pelican
+
+# The WotLK server. Reads its build straight from build's artifacts, so the
+# azerothcore workflow has to have published one first.
+- name: Deploy AzerothCore
+  hosts: azcore
+  become: true
+  roles:
+    - azerothcore

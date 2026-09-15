@@ -1,0 +1,104 @@
+# Rendered by the azerothcore role. A trimmed copy of upstream's
+# docker-compose.yml: one runtime image, with the binaries, SQL and map data bind
+# mounted from the build artifacts by sha instead of baked into four images.
+name: azerothcore
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-server: &server
+  image: {{ azerothcore_runtime_image }}:latest
+  user: "{{ azerothcore_uid }}:{{ azerothcore_uid }}"
+  logging: *default-logging
+
+x-db-info: &db-info
+  AC_LOGS_DIR: /azerothcore/env/dist/logs
+  AC_LOGIN_DATABASE_INFO: "ac-database;3306;root;{{ azerothcore_db_password }};acore_auth"
+  AC_WORLD_DATABASE_INFO: "ac-database;3306;root;{{ azerothcore_db_password }};acore_world"
+  AC_CHARACTER_DATABASE_INFO: "ac-database;3306;root;{{ azerothcore_db_password }};acore_characters"
+
+services:
+  ac-database:
+    image: {{ azerothcore_mysql_image }}
+    container_name: ac-database
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      MYSQL_ROOT_PASSWORD: "{{ azerothcore_db_password }}"
+    volumes:
+      - {{ azerothcore_dir }}/mysql:/var/lib/mysql
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=$$MYSQL_ROOT_PASSWORD --execute \"SHOW DATABASES;\""
+      interval: 5s
+      timeout: 10s
+      retries: 40
+
+  ac-db-import:
+    <<: *server
+    container_name: ac-db-import
+    command: dbimport
+    environment:
+      <<: *db-info
+      # SQL is looked up under here, not the CI workspace path compiled in.
+      AC_SOURCE_DIRECTORY: /azerothcore
+    volumes:
+      - {{ azerothcore_core }}/bin:/azerothcore/env/dist/bin:ro
+      - {{ azerothcore_core }}/data:/azerothcore/data:ro
+      - {{ azerothcore_dir }}/etc:/azerothcore/env/dist/etc
+      - {{ azerothcore_dir }}/logs:/azerothcore/env/dist/logs
+    depends_on:
+      ac-database:
+        condition: service_healthy
+
+  ac-worldserver:
+    <<: *server
+    container_name: ac-worldserver
+    command: worldserver
+    restart: unless-stopped
+    # Kept for `docker attach`, which is the server console.
+    stdin_open: true
+    tty: true
+    environment:
+      <<: *db-info
+      AC_DATA_DIR: /azerothcore/env/dist/data
+      AC_UPDATES_ENABLE_DATABASES: "0"
+      AC_DISABLE_INTERACTIVE: "1"
+      AC_CLOSE_IDLE_CONNECTIONS: "0"
+    ports:
+      - "{{ azerothcore_world_port }}:8085"
+    volumes:
+      - {{ azerothcore_core }}/bin:/azerothcore/env/dist/bin:ro
+      - {{ azerothcore_data }}:/azerothcore/env/dist/data:ro
+      - {{ azerothcore_dir }}/etc:/azerothcore/env/dist/etc
+      - {{ azerothcore_dir }}/logs:/azerothcore/env/dist/logs
+    depends_on:
+      ac-database:
+        condition: service_healthy
+      ac-db-import:
+        condition: service_completed_successfully
+
+  ac-authserver:
+    <<: *server
+    container_name: ac-authserver
+    command: authserver
+    restart: unless-stopped
+    tty: true
+    environment:
+      <<: *db-info
+      AC_UPDATES_ENABLE_DATABASES: "0"
+      AC_DISABLE_INTERACTIVE: "1"
+      AC_CLOSE_IDLE_CONNECTIONS: "0"
+    ports:
+      - "{{ azerothcore_auth_port }}:3724"
+    volumes:
+      - {{ azerothcore_core }}/bin:/azerothcore/env/dist/bin:ro
+      - {{ azerothcore_dir }}/etc:/azerothcore/env/dist/etc
+      - {{ azerothcore_dir }}/logs:/azerothcore/env/dist/logs
+    depends_on:
+      ac-database:
+        condition: service_healthy
+      ac-db-import:
+        condition: service_completed_successfully
