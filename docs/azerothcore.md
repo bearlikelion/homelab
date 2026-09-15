@@ -80,11 +80,11 @@ Old builds are never deleted yet; each is about a gigabyte on a 2T pool.
 ## The client
 
 WoWee, the native Linux client, is built the same way by `.forgejo/workflows/build.yml` in `mark/WoWee`.
-It runs in `archlinux:latest` rather than Ubuntu, because the binary links the system's own ffmpeg, SDL and unicorn, and the desktop is CachyOS.
+It runs in `archlinux:latest` rather than Ubuntu, because the binary links the system's own ffmpeg and SDL, and the desktop is CachyOS.
 
 | Path on build | Holds | Written |
 |---|---|---|
-| `/build/artifacts/wowee/client/<sha>` | `wowee`, the asset tools, shaders, addons and the tracked `Data/` json | Every push |
+| `/build/artifacts/wowee/client/<sha>` | `wowee`, `asset_extract`, shaders and the tracked `Data/` json | Every push |
 | `/build/artifacts/wowee/assets/<sha>` | `expansions/wotlk/`, loose files extracted from the MPQs | Only when run by hand with `extract_assets` ticked |
 
 The client reads loose files, not MPQs, and wants both halves in one `Data/` tree.

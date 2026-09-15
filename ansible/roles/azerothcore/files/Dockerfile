@@ -9,3 +9,5 @@ RUN apt-get update \
 
 ENV PATH="/azerothcore/env/dist/bin:$PATH"
 WORKDIR /azerothcore
+# dbimport writes its temporary SQL files into the working directory.
+RUN chown ubuntu:ubuntu /azerothcore
