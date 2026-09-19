@@ -53,8 +53,13 @@ rack_prune_keep: 5
 rack_prune_hour: 4
 
 # A job container may bind only what is listed here, and the default is nothing.
-# The build workflows mount all three.
+# Anything else a workflow mounts is dropped silently, so the job just fails
+# later on a missing path.
 forgejo_runner_valid_volumes:
   - "{{ rack_dir }}/cache"
+  - "{{ rack_dir }}/ccache"
+  - "{{ rack_dir }}/gradle"
   - "{{ rack_dir }}/scripts"
+  - "{{ rack_dir }}/src/OGDarkfall"
+  - "{{ rack_dir }}/uwdk"
   - "{{ rack_builds_dir }}"
