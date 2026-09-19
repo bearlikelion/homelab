@@ -58,6 +58,34 @@
     - etc
     - logs
 
+- name: Create the custom map directory
+  ansible.builtin.file:
+    path: "{{ azerothcore_dir }}/custom/maps"
+    state: directory
+    mode: "0755"
+
+- name: Copy the custom zone map files
+  ansible.builtin.copy:
+    src: "{{ azerothcore_custom_maps_src }}"
+    dest: "{{ azerothcore_dir }}/custom/maps/"
+    mode: "0644"
+
+# The extracted data set is read-only, so the worldserver reads a merged view: symlinks into the
+# read-only mount for everything Blizzard, plus the module's own map files on top.
+- name: Merge the extracted data with the custom maps
+  ansible.builtin.shell: |
+    set -eu
+    # Updated in place: the directory is bind mounted into the running worldserver, so it must keep its inode.
+    merged="{{ azerothcore_dir }}/data"
+    mkdir -p "$merged/maps"
+    for d in Cameras dbc vmaps mmaps; do ln -sfn "/azerothcore/env/dist/data-ro/$d" "$merged/$d"; done
+    find "$merged/maps" -maxdepth 1 -type l -delete
+    for f in "{{ azerothcore_data }}"/maps/*.map; do ln -s "/azerothcore/env/dist/data-ro/maps/$(basename "$f")" "$merged/maps/"; done
+    for f in "{{ azerothcore_dir }}"/custom/maps/*.map; do [ -e "$f" ] || continue; ln -sf "/azerothcore/env/dist/custom/maps/$(basename "$f")" "$merged/maps/"; done
+  args:
+    executable: /bin/bash
+  changed_when: false
+
 - name: Create the image directory
   ansible.builtin.file:
     path: "{{ azerothcore_dir }}/image"
@@ -93,6 +121,35 @@
     - authserver
     - worldserver
     - dbimport
+
+# Module configs install next to the app ones but in a modules/ subdirectory,
+# and the core reads only .conf there, with no .dist fallback.
+- name: Create the module config directory
+  ansible.builtin.file:
+    path: "{{ azerothcore_dir }}/etc/modules"
+    state: directory
+    owner: "{{ azerothcore_uid }}"
+    group: "{{ azerothcore_uid }}"
+    mode: "0755"
+
+- name: Find the module configs the build ships
+  ansible.builtin.find:
+    paths: "{{ azerothcore_core }}/etc/modules"
+    patterns: "*.conf.dist"
+  register: azerothcore_module_confs
+
+- name: Seed the module configs
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ azerothcore_dir }}/etc/modules/{{ item.path | basename | regex_replace('\\.dist$', '') }}"
+    remote_src: true
+    force: false
+    owner: "{{ azerothcore_uid }}"
+    group: "{{ azerothcore_uid }}"
+    mode: "0644"
+  loop: "{{ azerothcore_module_confs.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
 
 - name: Render compose file
   ansible.builtin.template:

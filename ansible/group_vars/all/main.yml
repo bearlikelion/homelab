@@ -72,6 +72,7 @@ pelican_ip: 192.168.1.220
 design_ip: 192.168.1.230
 foundry_ip: 192.168.1.240
 azcore_ip: 192.168.1.250
+vmangos_ip: 192.168.1.251
 
 # Second resolver for guests that manage their own resolv.conf. AdGuard on edge
 # is always first; this is only what answers when it is down.

@@ -1,0 +1,14 @@
+---
+# Overridable in group_vars. Kept here so the role stands on its own.
+
+vmangos_dir: /opt/vmangos
+
+# On the control machine: the Compose project that builds the image, with the
+# extracted client data and the working configs the first deploy seeds from.
+vmangos_src: /mnt/Storage/mWoW/Vanilla/server
+vmangos_image: vmangos:5875
+vmangos_mariadb_image: mariadb:11.4
+
+# A gzipped dump of realmd, characters, mangos and logs on the control machine.
+# Only loaded into an empty database, so only the first deploy needs it.
+vmangos_db_seed: ""

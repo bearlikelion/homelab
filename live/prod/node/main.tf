@@ -562,6 +562,37 @@ module "azcore" {
 
   tags          = ["game", "tofu"]
   startup_order = 46
+
+  # Parked for now. Delete both lines and apply to bring it back.
+  started       = false
+  start_on_boot = false
+}
+
+# --- vMaNGOS ----------------------------------------------------------------
+# The vanilla 1.12.1 server. Its image is built on the workstation from a
+# patched vmangos tree and streamed in by the vmangos role, so nothing is
+# mounted. The database stays in the rootfs, so vzdump keeps characters.
+
+module "vmangos" {
+  source = "../../../modules/lxc"
+
+  node_name        = var.node_name
+  vm_id            = 251
+  hostname         = "vmangos"
+  template_file_id = var.template_file_id
+
+  cores     = 4
+  memory    = 4096
+  disk_size = 16
+
+  ipv4_address = "192.168.1.251/24"
+  ipv4_gateway = var.gateway
+  dns_servers  = var.dns_servers
+
+  ssh_public_keys = var.ssh_public_keys
+
+  tags          = ["game", "tofu"]
+  startup_order = 47
 }
 
 # --- Build ------------------------------------------------------------------
@@ -846,6 +877,11 @@ output "containers" {
       vm_id    = module.azcore.vm_id
       hostname = module.azcore.hostname
       ip       = module.azcore.ip
+    }
+    vmangos = {
+      vm_id    = module.vmangos.vm_id
+      hostname = module.vmangos.hostname
+      ip       = module.vmangos.ip
     }
   }
 }

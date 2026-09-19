@@ -7,7 +7,7 @@ resource "proxmox_virtual_environment_container" "this" {
   unprivileged = var.unprivileged
 
   start_on_boot = var.start_on_boot
-  started       = true
+  started       = var.started
   tags          = var.tags
 
   operating_system {

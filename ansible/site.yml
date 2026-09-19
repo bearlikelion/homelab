@@ -134,3 +134,11 @@
   become: true
   roles:
     - azerothcore
+
+# The vanilla server. Its image is built on the control machine, so run
+# docker compose build in the vmangos server directory first.
+- name: Deploy vMaNGOS
+  hosts: vmangos
+  become: true
+  roles:
+    - vmangos

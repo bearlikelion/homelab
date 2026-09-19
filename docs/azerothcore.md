@@ -3,6 +3,7 @@
 A private WotLK server on `azcore`, for the desktop client to connect to.
 Container 250, `azcore`, 4 cores and 8G, at `192.168.1.250`.
 LAN only: nothing is forwarded on the router and there is no internal name.
+Stopped for now, by `started = false` on its module: delete that and `start_on_boot = false`, then apply, to bring it back.
 
 ## Where it is built
 
@@ -80,11 +81,14 @@ Old builds are never deleted yet; each is about a gigabyte on a 2T pool.
 ## The client
 
 WoWee, the native Linux client, is built the same way by `.forgejo/workflows/build.yml` in `mark/WoWee`.
-It runs in `archlinux:latest` rather than Ubuntu, because the binary links the system's own ffmpeg and SDL, and the desktop is CachyOS.
+It runs in `archlinux:latest` rather than Ubuntu, because the binary links the system's own SDL, and the desktop is CachyOS.
+The same workflow also builds portable playtest packages for other PCs in `ubuntu:24.04`.
 
 | Path on build | Holds | Written |
 |---|---|---|
 | `/build/artifacts/wowee/client/<sha>` | `wowee`, `asset_extract`, shaders and the tracked `Data/` json | Every push |
+| `/build/artifacts/wowee/client-windows/<sha>` | `mwow-client-windows.zip`: a static `wowee.exe`, shaders and the tracked `Data/` json | Every push |
+| `/build/artifacts/wowee/client-linux/<sha>` | `mwow-client-linux.tar.gz`: the same for any distro with glibc 2.39 or newer | Every push |
 | `/build/artifacts/wowee/assets/<sha>` | `expansions/wotlk/`, loose files extracted from the MPQs | Only when run by hand with `extract_assets` ticked |
 
 The client reads loose files, not MPQs, and wants both halves in one `Data/` tree.
@@ -95,6 +99,34 @@ Copy the client first, then merge the assets into it without `--delete`, which w
     cd ~/Games/wowee && ./wowee
 
 A full asset extraction is roughly the size of the client again, on the build pool.
+
+### A playtest PC
+
+A second PC gets its game data copied once and a small package for every update.
+Each archive holds a top-level `mwow/` folder, so unpack it into the folder that contains the install, not into the install itself.
+
+Once, copy the data and custom zones from the desktop into the install folder, for example on a USB drive:
+
+    rsync -a --exclude .cache ~/Games/wowee/Data ~/Games/wowee/custom_zones /run/media/mark/<drive>/mwow/
+
+Once, create `mwow/config/login.cfg`.
+A `config/` folder next to the binary keeps settings inside the install, and `expansion=mwow` selects the knight races:
+
+    version=3
+    active=192.168.1.250:3724
+
+    [server 192.168.1.250:3724]
+    expansion=mwow
+
+For each update, fetch the package and unpack it over the install:
+
+    rsync -a root@192.168.1.150:/build/artifacts/wowee/client-windows/latest/ .
+    rsync -a root@192.168.1.150:/build/artifacts/wowee/client-linux/latest/ .
+
+Packages never contain `config/`, so the saved login survives an update.
+The player needs their own account, created as in [Accounts](#accounts).
+Windows SmartScreen warns about the unsigned `wowee.exe` on its first run: choose "More info", then "Run anyway".
+The Windows build keeps a console window open beside the game, which shows the log.
 
 ## Accounts
 

@@ -71,7 +71,8 @@
   no_log: true
 
 # Idempotent by design: re-running with the same secret returns the same UUID
-# and rotates nothing.
+# and rotates nothing. Without --keep-labels a re-run blanks the labels the
+# running runner declared, and every job then waits for a runner forever.
 - name: Register the runner with Forgejo
   ansible.builtin.command:
     argv:
@@ -84,6 +85,7 @@
       - forgejo-cli
       - actions
       - register
+      - --keep-labels
       - --name
       - "{{ build_runner_name }}"
       - --secret

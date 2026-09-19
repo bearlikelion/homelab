@@ -18,3 +18,5 @@ azerothcore_world_port: 8085
 
 # The ubuntu user in the runtime image. etc and logs are written as it.
 azerothcore_uid: 1000
+# Map files authored for custom zones, copied from the control machine and merged over the extracted data.
+azerothcore_custom_maps_src: /mnt/Storage/mWoW/azerothcore/modules/mod-mwow/data/maps/

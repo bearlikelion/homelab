@@ -66,3 +66,7 @@ all:
       hosts:
         azcore:
           ansible_host: 192.168.1.250
+    vmangos:
+      hosts:
+        vmangos:
+          ansible_host: 192.168.1.251

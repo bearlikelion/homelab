@@ -14,6 +14,9 @@ x-server: &server
   user: "{{ azerothcore_uid }}:{{ azerothcore_uid }}"
   logging: *default-logging
 
+# The game clock is the server's local time, so the containers follow the host's zone.
+x-localtime: &localtime /etc/localtime:/etc/localtime:ro
+
 x-db-info: &db-info
   AC_LOGS_DIR: /azerothcore/env/dist/logs
   AC_LOGIN_DATABASE_INFO: "ac-database;3306;root;{{ azerothcore_db_password }};acore_auth"
@@ -49,6 +52,7 @@ services:
       - {{ azerothcore_core }}/data:/azerothcore/data:ro
       - {{ azerothcore_dir }}/etc:/azerothcore/env/dist/etc
       - {{ azerothcore_dir }}/logs:/azerothcore/env/dist/logs
+      - *localtime
     depends_on:
       ac-database:
         condition: service_healthy
@@ -73,9 +77,12 @@ services:
       - "{{ azerothcore_world_port }}:8085"
     volumes:
       - {{ azerothcore_core }}/bin:/azerothcore/env/dist/bin:ro
-      - {{ azerothcore_data }}:/azerothcore/env/dist/data:ro
+      - {{ azerothcore_data }}:/azerothcore/env/dist/data-ro:ro
+      - {{ azerothcore_dir }}/data:/azerothcore/env/dist/data:ro
+      - {{ azerothcore_dir }}/custom:/azerothcore/env/dist/custom:ro
       - {{ azerothcore_dir }}/etc:/azerothcore/env/dist/etc
       - {{ azerothcore_dir }}/logs:/azerothcore/env/dist/logs
+      - *localtime
     depends_on:
       ac-database:
         condition: service_healthy
@@ -99,6 +106,7 @@ services:
       - {{ azerothcore_core }}/bin:/azerothcore/env/dist/bin:ro
       - {{ azerothcore_dir }}/etc:/azerothcore/env/dist/etc
       - {{ azerothcore_dir }}/logs:/azerothcore/env/dist/logs
+      - *localtime
     depends_on:
       ac-database:
         condition: service_healthy

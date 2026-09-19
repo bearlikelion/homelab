@@ -34,7 +34,8 @@ the service.
 | `clips` | Fireshare, game clips shared by link, transcoding on the P400 |
 | `darkfall` | The Darkfall server cluster, plus the CI build rack on the mesh |
 | `pelican` | Pelican panel and Wings, SteamCMD game servers in Docker. The one VM |
-| `azcore` | AzerothCore, a private WotLK server built by CI on `build` |
+| `azcore` | AzerothCore, a private WotLK server built by CI on `build`. Stopped for now |
+| `vmangos` | vMaNGOS, a private vanilla server built on the workstation |
 | `social` | Postiz |
 | `backup` | Backrest over restic, nightly to local disk and offsite to B2 |
 | `files` | Samba shares over the ZFS pool |

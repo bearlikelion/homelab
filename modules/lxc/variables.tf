@@ -122,6 +122,12 @@ variable "start_on_boot" {
   default     = true
 }
 
+variable "started" {
+  description = "Keep the container running. False stops it without destroying it."
+  type        = bool
+  default     = true
+}
+
 variable "startup_order" {
   description = "Boot order. Lower starts first; leave null for no explicit ordering."
   type        = number

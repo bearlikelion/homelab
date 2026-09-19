@@ -1,0 +1,71 @@
+# Rendered by the vmangos role. The workstation's Compose file in
+# /mnt/Storage/mWoW/Vanilla/server, minus the build and with the data on disk.
+name: vmangos
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: {{ vmangos_mariadb_image }}
+    container_name: vmangos-db
+    restart: unless-stopped
+    logging: *default-logging
+    command: >-
+      --sql-mode=NO_ENGINE_SUBSTITUTION --max-allowed-packet=128M
+      --character-set-server=utf8mb3 --collation-server=utf8mb3_general_ci
+    environment:
+      MARIADB_ROOT_PASSWORD: "{{ vmangos_db_password }}"
+      MARIADB_USER: mangos
+      MARIADB_PASSWORD: "{{ vmangos_db_password }}"
+    volumes:
+      - {{ vmangos_dir }}/mysql:/var/lib/mysql
+      - {{ vmangos_dir }}/db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 30
+      # The first start loads the seed before it answers.
+      start_period: 10m
+
+  realmd:
+    image: {{ vmangos_image }}
+    container_name: vmangos-realmd
+    restart: unless-stopped
+    logging: *default-logging
+    command: ./realmd -c /opt/vmangos/etc/realmd.conf
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - {{ vmangos_dir }}/etc:/opt/vmangos/etc:ro
+      - {{ vmangos_dir }}/logs:/opt/vmangos/logs
+    ports:
+      - 3724:3724
+
+  mangosd:
+    image: {{ vmangos_image }}
+    container_name: vmangos-mangosd
+    restart: unless-stopped
+    logging: *default-logging
+    command: ./mangosd -c /opt/vmangos/etc/mangosd.conf
+    # Kept for `docker attach`, which is the server console.
+    stdin_open: true
+    tty: true
+    depends_on:
+      db:
+        condition: service_healthy
+      realmd:
+        condition: service_started
+    volumes:
+      - {{ vmangos_dir }}/etc:/opt/vmangos/etc:ro
+      - {{ vmangos_dir }}/data:/opt/vmangos/data:ro
+      - {{ vmangos_dir }}/logs:/opt/vmangos/logs
+      # The game clock is the server's local time.
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8085:8085
+      - 127.0.0.1:7878:7878

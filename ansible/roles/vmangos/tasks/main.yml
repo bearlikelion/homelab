@@ -1,0 +1,145 @@
+---
+# vMaNGOS: MariaDB, realmd and mangosd.
+#
+# The image is built on the control machine, because the vmangos tree carries
+# local patches and has no Forgejo remote, and is streamed across whenever its
+# ID differs from the one here.
+
+- name: Read the image ID on the control machine
+  become: false
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv: [docker, image, inspect, --format, "{{ '{{.Id}}' }}", "{{ vmangos_image }}"]
+  register: vmangos_local_image
+  changed_when: false
+
+- name: Read the image ID here
+  ansible.builtin.command:
+    argv: [docker, image, inspect, --format, "{{ '{{.Id}}' }}", "{{ vmangos_image }}"]
+  register: vmangos_remote_image
+  changed_when: false
+  failed_when: false
+
+- name: Stream the image across
+  become: false
+  delegate_to: localhost
+  ansible.builtin.shell: >-
+    set -o pipefail;
+    docker save {{ vmangos_image }} | ssh root@{{ vmangos_ip }} docker load
+  args:
+    executable: /bin/bash
+  when: vmangos_remote_image.stdout != vmangos_local_image.stdout
+
+- name: Create the directories
+  ansible.builtin.file:
+    path: "{{ vmangos_dir }}/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - etc
+    - logs
+    - data
+    - db-init
+
+- name: Install rsync for the data push
+  ansible.builtin.apt:
+    name: rsync
+
+# become would inject sudo, which the container does not have; the connection
+# is already root.
+- name: Push the extracted client data
+  become: false
+  ansible.posix.synchronize:
+    src: "{{ vmangos_src }}/data/"
+    dest: "{{ vmangos_dir }}/data/"
+    delete: true
+
+# Seeded once from the workstation's working copies and left alone, so an edit
+# made on the box survives the next deploy. Only the database lines are owned.
+- name: Seed the server configs
+  ansible.builtin.copy:
+    src: "{{ vmangos_src }}/etc/{{ item }}.conf"
+    dest: "{{ vmangos_dir }}/etc/{{ item }}.conf"
+    force: false
+    mode: "0600"
+  loop:
+    - realmd
+    - mangosd
+
+- name: Point the configs at the database
+  ansible.builtin.lineinfile:
+    path: "{{ vmangos_dir }}/etc/{{ item.conf }}.conf"
+    regexp: "^{{ item.key | regex_escape }}\\s*="
+    line: '{{ item.key }} = "db;3306;mangos;{{ vmangos_db_password }};{{ item.db }}"'
+  loop:
+    - { conf: realmd, key: LoginDatabaseInfo, db: realmd }
+    - { conf: mangosd, key: LoginDatabase.Info, db: realmd }
+    - { conf: mangosd, key: WorldDatabase.Info, db: mangos }
+    - { conf: mangosd, key: CharacterDatabase.Info, db: characters }
+    - { conf: mangosd, key: LogsDatabase.Info, db: logs }
+  no_log: true
+
+- name: Copy the database setup
+  ansible.builtin.copy:
+    src: 01-databases.sql
+    dest: "{{ vmangos_dir }}/db-init/01-databases.sql"
+    mode: "0644"
+
+# MariaDB runs db-init only against an empty data directory, so the seed
+# matters on the first deploy and is ignored after.
+- name: Look for an existing database
+  ansible.builtin.stat:
+    path: "{{ vmangos_dir }}/mysql"
+  register: vmangos_mysql
+
+- name: Fail without a database or a seed
+  ansible.builtin.fail:
+    msg: >-
+      There is no database here yet. Pass -e vmangos_db_seed=<dump.sql.gz>;
+      docs/vmangos.md shows how to take one.
+  when: not vmangos_mysql.stat.exists and not vmangos_db_seed
+
+- name: Copy the database seed
+  ansible.builtin.copy:
+    src: "{{ vmangos_db_seed }}"
+    dest: "{{ vmangos_dir }}/db-init/02-seed.sql.gz"
+    mode: "0644"
+  when: not vmangos_mysql.stat.exists
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ vmangos_dir }}/docker-compose.yml"
+    mode: "0600"
+  no_log: true
+
+# Blocks until MariaDB is healthy, which on the first deploy is after the seed
+# has loaded.
+- name: Start the server
+  community.docker.docker_compose_v2:
+    project_src: "{{ vmangos_dir }}"
+    state: present
+    pull: missing
+
+# The realm row still carries the address of wherever the dump came from.
+- name: Point the realm at this box
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --env
+      - "MYSQL_PWD={{ vmangos_db_password }}"
+      - vmangos-db
+      - mariadb
+      - --user=root
+      - realmd
+      - --execute
+      - UPDATE realmlist SET address = '{{ vmangos_ip }}', localAddress = '{{ vmangos_ip }}' WHERE id = 1
+  changed_when: false
+  no_log: true
+
+- name: Where to go next
+  ansible.builtin.debug:
+    msg:
+      - "Realm at {{ vmangos_ip }}:3724. realmlist.wtf: set realmlist {{ vmangos_ip }}"
+      - "Console: docker attach vmangos-mangosd, detach with Ctrl-p Ctrl-q."
